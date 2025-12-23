@@ -1,0 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+@import "tailwindcss";
+
+@layer components {
+  .card {
+    @apply bg-white rounded-lg p-4 shadow-md;  /* Match card trắng, rounded, padding, shadow nhẹ */
+  }
+
+  .card-btn {
+    @apply flex items-center gap-2 px-3 py-1.5 bg-purple-50 text-purple-700 rounded-md hover:bg-purple-100 transition-colors;  /* Match nút light purple bg, text purple, rounded, hover */
+  }
+  .add-btn {
+    @apply px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700;
+  }
+  .add-btn-fill {
+    @apply flex items-center justify-center gap-1
+  }
+}
+
+body{
+  font-family: 'Outfit', sans-serif;
+  background-color: #fff7fb;
+  /* background-color: #e9ecef; */
+  overflow-x: hidden;
+}
+
+/* Custom scrollbar cho react-select dropdown */
+/* .react-select__menu {
+  max-height: 250px; 
+  overflow-y: auto;
+} */
+
+.react-select__menu::-webkit-scrollbar {
+  width: 6px;  /* Chiều rộng scrollbar mỏng hơn */
+}
+
+.react-select__menu::-webkit-scrollbar-thumb {
+  background-color: #a0a0a0;  /* Màu thumb (kéo) */
+  border-radius: 3px;         /* Bo góc */
+}
+
+.react-select__menu::-webkit-scrollbar-track {
+  background: #f1f1f1;  /* Màu track (nền) */
+}
+
+.react-select__menu-list {
+  max-height: 180px !important;
+  overflow-y: auto !important;
+}
+
+/* End Custom scrollbar */
+/* Custom tooltip để xem thống kê chi tiết của income đó */
+
+/* .recharts-tooltip-wrapper {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+} */
+
+/* End custom tooltip */
