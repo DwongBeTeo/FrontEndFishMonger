@@ -15,7 +15,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
         const currentRole = user.role?.name || user.role || "USER"; 
         console.log("Role thực tế tính toán được:", currentRole);
     }
-    
+
     if(isLoading) {
         return (
             <div className="flex justify-center items-center h-screen">
@@ -38,6 +38,8 @@ const ProtectedRoute = ({ allowedRoles }) => {
 
     if (allowedRoles && !allowedRoles.includes(userRole)) {
         // Có đăng nhập nhưng sai quyền
+        console.log("Sai quyền truy cập");
+        
         return <Navigate to="/" replace />; // Hoặc về trang Home
     }
 

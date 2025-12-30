@@ -7,7 +7,7 @@ export const assets = {
     login_bg
 }
 
-export const SIDE_BAR_DATA = [
+export const SIDE_BAR_USER = [
     {
         id: '01',
         label: 'Product',
@@ -16,39 +16,42 @@ export const SIDE_BAR_DATA = [
     },
     {
         id: '02',
-        label: 'ProductAdmin',
-        icon: List,
-        path: '/productAdmin',
-    },
-    {
-        id: '03',
         label: 'Category',
         icon: List,
         path: '/category',
     },
     {
-        id: '04',
-        label: 'CategoryAdmin',
-        icon: List,
-        path: '/categoryAdmin',
-    },
-    {
-        id: '05',
+        id: '03',
         label: 'Cart',
         icon: ShoppingCart,
         path: '/cart',
     },
     {
-        id: '06',
+        id: '04',
         label: 'Order',
         icon: ListOrdered,
         path: '/order',
     },
+    //còn thiếu ServiceType, Employee, Appointment
+]
+
+export const SIDE_BAR_ADMIN = [
     {
-        id: '07',
-        label: 'OrderAdmin',
+        id: '01',
+        label: 'ProductAdmin',
+        icon: Fish,
+        path: '/productAdmin',
+    },
+    {
+        id: '02',
+        label: 'CategoryAdmin',
         icon: List,
+        path: '/categoryAdmin',
+    },
+    {
+        id: '03',
+        label: 'OrderAdmin',
+        icon: ListOrdered,
         path: '/orderAdmin',
     },
-    //còn thiếu ServiceType, Employee, Appointment
 ]

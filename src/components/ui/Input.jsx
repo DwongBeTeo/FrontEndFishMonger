@@ -67,6 +67,7 @@ const Input = ({label, value, onChange, placeholder, type, isSelect, options}) =
                             <Eye
                                 size={20}
                                 className= "text-purple-800"
+                                
                                 onClick={toggleShowPassword}
                             />
                         ) : (

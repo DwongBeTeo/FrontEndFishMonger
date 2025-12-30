@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Input from "../components/Input";
+import Input from "../components/ui/Input";
 import { LoaderCircle } from "lucide-react";
 import { assets } from "../assets/asset";
 import toast from "react-hot-toast";

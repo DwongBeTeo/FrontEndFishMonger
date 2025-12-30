@@ -7,6 +7,7 @@ import OrderAdmin from "./pages/admin/OrderAdmin";
 import ProductAdmin from "./pages/admin/ProductAdmin";
 import Home from "./pages/Home";
 import ProtectedRoute from "./components/ProtectedRoute";
+import MainLayout from "./components/MainLayout";
 
 
 const App = () => {
@@ -14,20 +15,25 @@ const App = () => {
     <>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/sign-up" element={<Signup />} />
           
-          {/* Pages Admin */}
-          <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
-              <Route path="/categoryAdmin" element={<CategoryAdmin />} />
-              <Route path="/orderAdmin" element={<OrderAdmin />} />
-              <Route path="/productAdmin" element={<ProductAdmin />} />
-          </Route>
+          {/* Bọc tất cả trong MainLayout */}
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<Home />} />
+            
+            {/* Pages Admin */}
+            <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+                <Route path="/categoryAdmin" element={<CategoryAdmin />} />
+                <Route path="/orderAdmin" element={<OrderAdmin />} />
+                <Route path="/productAdmin" element={<ProductAdmin />} />
+            </Route>
+            
 
-          {/* Pages User */}
-          <Route element={<ProtectedRoute allowedRoles={['USER']} />}>
-              <Route path="/product" element={<Product />} />
+            {/* Pages User */}
+            <Route element={<ProtectedRoute allowedRoles={['USER']} />}>
+                <Route path="/product" element={<Product />} />
+            </Route>
           </Route>
 
         </Routes>

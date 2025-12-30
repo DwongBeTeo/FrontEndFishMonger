@@ -3,18 +3,17 @@ import AuthContext from "../../context/AuthContext";
 
 const ProductAdmin = () => {
     const { user, logout } = useContext(AuthContext);
+    
     return (
-        <nav>
-            {user ? (
+        <nav style={{ padding: "20px" }}>
+            
                 <>
-                    <span>Hello, {user.fullName}</span>
+                    <span>Hello, {user?.fullName}</span>
                     <div>Product for admin</div>
                     {/* Gọi hàm logout khi click */}
-                    <button onClick={logout}>Đăng xuất</button>
+                    <button className="card-btn" onClick={logout}>Đăng xuất</button>
                 </>
-            ) : (
-                <a href="/login">Login</a>
-            )}
+            
         </nav>
     )
 }

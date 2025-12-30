@@ -33,16 +33,33 @@ export const AppContextProvider = ({children}) => {
                 return;
             }
 
+            // // 2. Check token hết hạn (Client side check)
+            // try {
+            //     const decoded = jwtDecode(token);
+            //     if (decoded.exp * 1000 < Date.now()) {
+            //         console.warn("Token expired -> Logout");
+            //         logout();
+            //         return;
+            //     }
+            // } catch (error) {
+            //     logout(); // Token rác/lỗi -> Logout
+            //     return;
+            // }
+
             try {
                 // Gọi API 1 lần duy nhất khi web vừa load (F5)
                 const response = await axiosConfig.get(API_ENDPOINTS.GET_USER_INFO);
                 if (response.data) {
-                    setUser(response.data);
+                    const finalUser = mergeUserWithTokenRole(response.data,token);
+                    setUser(finalUser);
                 }
             } catch (error) {
-                console.log("Token hết hạn hoặc lỗi mạng:", error);
-                localStorage.removeItem('token');
-                setUser(null);
+                console.log("Failed to restore session:", error);
+                // Chỉ logout nếu lỗi 401 (Unauthorized) hoặc 403 (Forbidden)
+                // Nếu 500 hoặc mất mạng thì KHÔNG logout, để user thử lại sau
+                if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+                    logout();
+                }
             } finally {
                 // Dù thành công hay thất bại cũng phải tắt loading
                 setIsLoading(false);
@@ -52,63 +69,33 @@ export const AppContextProvider = ({children}) => {
         initAuth();
     }, []); // Empty dependency array [] đảm bảo chỉ chạy 1 lần duy nhất
 
-
     // --- HÀM LOGIN  ---
     const login = (token, dataFromApi) => {
         // 1. Lưu token
         localStorage.setItem('token', token);
 
-        // 2. Luôn ưu tiên Role từ Token (Single Source of Truth)
-        const decoded = jwtDecode(token);
-        
-        // 3. Merge dữ liệu: Lấy role từ token, lấy tên/email từ API
-        const finalUser = {
-            ...dataFromApi,      // FullName, Email...
-            role: decoded.role,  // Ghi đè Role từ token để đảm bảo chính xác 100%
-            email: decoded.sub   // Hoặc lấy email từ token luôn cho chắc
-        };
+        const finalUser = mergeUserWithTokenRole(dataFromApi,token);
 
         // 4. Lưu vào State
         setUser(finalUser);
         
         // 5. Trả về role để bên ngoài biết đường điều hướng (nếu cần)
-        return decoded.role;
+        return finalUser?.role;
     };
 
     // --- HÀM LOGOUT CHUYÊN NGHIỆP ---
     const logout = () => {
-        // 1. Xóa token khỏi Storage (Quan trọng nhất)
         localStorage.removeItem('token');
-
-        // 2. Xóa state User để giao diện cập nhật ngay lập tức
         setUser(null);
-
-        // 3. Điều hướng về trang Login
-        
-        // AuthContext (Provider) phải nằm bên trong BrowserRouter
-        // index.js (hoặc main.jsx)
-        {/* Router bọc bên ngoài cùng */}
-        {/* Provider nằm trong Router -> Dùng được navigate */}
-        // <BrowserRouter> 
-        //     <AppContextProvider> 
-        //         <App />
-        //     </AppContextProvider>
-        // </BrowserRouter>
-
-
-        // navigate('/login');
-        
-        // Mẹo chuyên nghiệp: Nếu muốn xóa sạch mọi state rác của ứng dụng, 
-        // thay vì navigate, bạn có thể dùng lệnh reload cứng (tùy chọn):
-        // window.location.href = "/login";
+        setIsLoading(false);
     };
 
     const contextValue = {
         user,
         setUser,
-        clearUser,
         login,
         logout,
+        isLoading,
     }
 
     return (
