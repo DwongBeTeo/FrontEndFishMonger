@@ -17,10 +17,10 @@ const App = () => {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/sign-up" element={<Signup />} />
-          
           {/* Bọc tất cả trong MainLayout */}
           <Route element={<MainLayout />}>
             <Route path="/" element={<Home />} />
+            <Route path="/product" element={<Product />} />
             
             {/* Pages Admin */}
             <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
@@ -32,7 +32,7 @@ const App = () => {
 
             {/* Pages User */}
             <Route element={<ProtectedRoute allowedRoles={['USER']} />}>
-                <Route path="/product" element={<Product />} />
+
             </Route>
           </Route>
 
