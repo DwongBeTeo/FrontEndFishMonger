@@ -1,5 +1,5 @@
-import { Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Eye, EyeOff, Plus } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import CategoryList from "../../components/admin/category/CategoryList";
 import { API_ENDPOINTS } from "../../util/apiEndpoints";
 import axiosConfig from "../../util/axiosConfig";
@@ -10,7 +10,10 @@ import AddCategoryForm from "../../components/admin/category/AddCategoryForm";
 const CategoryAdmin = () => {
     const [loading, setLoading] = useState(false);
     const [categoryData, setCategoryData] = useState([]);
-    
+
+    // Kiểm soát việc hiển thị danh mục đã xóa
+    const [showDeleted, setShowDeleted] = useState(false);
+
     // State quản lý Modal
     const [openModal, setOpenModal] = useState(false);
     const [modalType, setModalType] = useState('ADD'); // 'ADD' hoặc 'EDIT'
@@ -98,7 +101,7 @@ const CategoryAdmin = () => {
     const handleDeleteCategory = async (id) => {
         if (window.confirm("Bạn có chắc chắn muốn xóa danh mục này?")) {
             try {
-                // await axiosConfig.delete(API_ENDPOINTS.DELETE_CATEGORY(id));
+                await axiosConfig.delete(API_ENDPOINTS.DELETE_CATEGORY(id));
                 console.log("Delete ID:", id); // Tạm log
                 toast.success('Đã xóa danh mục');
                 fetchCategoriesDetails();
@@ -109,25 +112,65 @@ const CategoryAdmin = () => {
         }
     };
 
+    // hàm sử lý khôi phục danh mục
+    const handleRestoreCategory = async (id) => {
+        if (window.confirm("Bạn có chắc chắn muốn khôi phục danh mục này?")) {
+            try {
+                await axiosConfig.put(API_ENDPOINTS.RESTORE_CATEGORY(id));
+                toast.success('Đã khôi phục danh mục');
+                fetchCategoriesDetails();
+            } catch (error) {
+                console.error('Error restoring:', error);
+                toast.error('Khôi phục thất bại');
+            }
+        }
+    };
+
+    // Logic local danh mục dựa trên trạng thái xóa
+    const processedData = useMemo(() => {
+        // Nếu showDeleted = true -> Hiển thị tất cả (cả 0 và 1)
+        // Nếu showDeleted = false -> Chỉ hiển thị cái chưa xóa (isDeleted = 0 hoặc null)
+        if (showDeleted) {
+            return categoryData;
+        }
+        return categoryData.filter(item => !item.isDeleted || item.isDeleted === 0);
+    }, [categoryData, showDeleted]);
+
     return (
         <div className="my-5 mx-auto px-4">
             {/* Header */}
             <div className="flex justify-between items-center mb-5">
                 <h2 className="text-2xl font-semibold text-gray-800">Quản lý Danh mục</h2>
-                <button
-                    onClick={handleOpenAddModal}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-sm"
-                >
-                    <Plus size={18} />
-                    <span>Thêm Danh mục</span>
-                </button>
+                <div className="flex gap-3">
+                    {/* 4. Nút Toggle hiển thị thùng rác */}
+                    <button
+                        onClick={() => setShowDeleted(!showDeleted)}
+                        className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition-all ${
+                            showDeleted 
+                            ? 'bg-orange-100 border-orange-200 text-orange-700' 
+                            : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                        }`}
+                    >
+                        {showDeleted ? <Eye size={18} /> : <EyeOff size={18} />}
+                        <span>{showDeleted ? 'Ẩn mục đã xóa' : 'Hiện mục đã xóa'}</span>
+                    </button>
+
+                    <button
+                        onClick={handleOpenAddModal}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-sm"
+                    >
+                        <Plus size={18} />
+                        <span>Thêm Danh mục</span>
+                    </button>
+                </div>
             </div>
 
             {/* List Table */}
             <CategoryList
-                categories={categoryData}
+                categories={processedData}
                 onEditCategory={handleOpenEditModal}
                 onDeleteCategory={handleDeleteCategory}
+                onRestoreCategory={handleRestoreCategory}
             />
 
             {/* Shared Modal for Add & Edit */}

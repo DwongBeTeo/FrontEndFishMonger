@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
-import { Search, Edit, Trash2, Layers2, CornerDownRight, Folder, FileText, ChevronDown, ChevronRight } from 'lucide-react';
+import { Search, Edit, Trash2, Layers2, CornerDownRight, Folder, FileText, ChevronDown, ChevronRight, RotateCcw } from 'lucide-react';
 import { buildCategoryTree } from '../../../util/buildCategoryTree';
 import { removeAccents } from '../../../util/removeAccents';
-const CategoryList = ({categories,onEditCategory, onDeleteCategory}) => {
+const CategoryList = ({categories= [],onEditCategory, onDeleteCategory, onRestoreCategory}) => {
     const [searchTerm, setSearchTerm] = useState('');
     // 1. State lưu các ID đang bị thu gọn
     const [collapsedIds, setCollapsedIds] = useState([]);
@@ -64,146 +64,181 @@ const CategoryList = ({categories,onEditCategory, onDeleteCategory}) => {
     }, [categories, searchTerm, collapsedIds]); // Chạy lại khi search hoặc collapsedIds thay đổi
 
     return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        {/* Header: Title & Search */}
-        <div className="flex flex-col md:flex-row justify-between items-center p-6 border-b border-gray-100 gap-4">
-            <div className="flex items-center gap-2">
-                <div className="p-2 bg-blue-500 rounded-lg">
-                    <Layers2 className="w-5 h-5 text-white" />
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            {/* Header: Title & Search */}
+            <div className="flex flex-col md:flex-row justify-between items-center p-6 border-b border-gray-100 gap-4">
+                <div className="flex items-center gap-2">
+                    <div className="p-2 bg-blue-500 rounded-lg">
+                        <Layers2 className="w-5 h-5 text-white" />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-800">Danh sách danh mục</h2>
                 </div>
-                <h2 className="text-xl font-bold text-gray-800">Danh sách danh mục</h2>
+
+                <div className="relative w-full md:w-80">
+                    <input
+                        type="text"
+                        placeholder="Tìm kiếm danh mục..."
+                        className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+                </div>
             </div>
 
-            <div className="relative w-full md:w-80">
-                <input
-                    type="text"
-                    placeholder="Tìm kiếm danh mục..."
-                    className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
-            </div>
-        </div>
-
-        {/* Table List */}
-        <div className="overflow-x-auto">
-            <table className="w-full">
-                <thead className="bg-gray-50/50">
-                    <tr>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">ID</th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Tên danh mục (Cây)</th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Loại</th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Sản phẩm</th>
-                        <th className="px-6 py-4 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">Hành động</th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                    {displayCategories.length === 0 ? (
+            {/* Table List */}
+            <div className="overflow-x-auto">
+                <table className="w-full">
+                    <thead className="bg-gray-50/50">
                         <tr>
-                            <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
-                                Không tìm thấy danh mục nào.
-                            </td>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">ID</th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Tên danh mục (Cây)</th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Loại</th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Sản phẩm</th>
+                            <th className="px-6 py-4 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">Hành động</th>
                         </tr>
-                    ) : (
-                        displayCategories.map((item) => {
-                            // Kiểm tra xem dòng này có phải là cha (có con) không
-                            const hasChildren = parentIds.has(item.id);
-                            const isCollapsed = collapsedIds.includes(item.id);
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                        {displayCategories.length === 0 ? (
+                            <tr>
+                                <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
+                                    Không tìm thấy danh mục nào.
+                                </td>
+                            </tr>
+                        ) : (
+                            displayCategories.map((item) => {
+                                // Kiểm tra xem dòng này có phải là cha (có con) không
+                                const hasChildren = parentIds.has(item.id);
+                                const isCollapsed = collapsedIds.includes(item.id);
+                                
+                                // === LOGIC XÓA MỀM ===
+                                // Kiểm tra xem item này đã bị xóa chưa (giả sử DB lưu 1 là xóa, 0 là chưa)
+                                const isDeleted = item.isDeleted === 1 || item.isDeleted === true;
 
-                            return (
-                                <tr key={item.id} className="hover:bg-gray-50 transition-colors group">
-                                    
-                                    {/* ID */}
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400 font-medium">
-                                        #{item.id?.toString().padStart(2, '0')}
-                                    </td>
+                                return (
+                                    <tr key={item.id} 
+                                        className={`transition-colors group ${
+                                            // Nếu đã xóa thì nền đỏ nhạt, ngược lại hover xám
+                                            isDeleted ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-gray-50'
+                                        }`}
+                                    >
 
-                                    {/* CỘT CÂY THƯ MỤC */}
-                                    <td className="px-6 py-4">
-                                        <div 
-                                            className="flex items-center gap-2"
-                                            style={{ paddingLeft: searchTerm ? 0 : `${(item.level || 0) * 40}px` }}
-                                        >
-                                            {/* Nút Toggle (Chỉ hiện nếu có con và không search) */}
-                                            {!searchTerm && (
-                                                <button 
-                                                    onClick={() => toggleCollapse(item.id)}
-                                                    className={`p-1 rounded hover:bg-gray-200 text-gray-500 transition-all ${!hasChildren ? 'invisible' : ''}`}
-                                                >
-                                                    {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
-                                                </button>
-                                            )}
+                                        {/* ID */}
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400 font-medium">
+                                            #{item.id?.toString().padStart(2, '0')}
+                                        </td>
 
-                                            {/* Ảnh/Icon */}
-                                            <div className={`relative w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200 flex items-center justify-center cursor-pointer
-                                                ${item.level === 0 ? 'bg-blue-50' : 'bg-gray-50'}`}
-                                                onClick={() => hasChildren && !searchTerm && toggleCollapse(item.id)} // Click vào icon cũng toggle được
+                                        {/* CỘT CÂY THƯ MỤC */}
+                                        <td className="px-6 py-4">
+                                            <div
+                                                className={`flex items-center gap-2 ${isDeleted ? 'opacity-60' : ''}`} // Làm mờ nếu đã xóa
+                                                style={{ paddingLeft: searchTerm ? 0 : `${(item.level || 0) * 40}px` }}
                                             >
-                                                {item.icon ? (
-                                                    <img src={item.icon} alt={item.name} className="w-full h-full object-cover" />
-                                                ) : (
-                                                    item.level === 0 ? <Folder size={18} className="text-blue-500"/> : <FileText size={16} className="text-gray-400"/>
-                                                )}
-                                            </div>
-
-                                            {/* Tên & Mô tả */}
-                                            <div className="flex flex-col select-none" onClick={() => hasChildren && !searchTerm && toggleCollapse(item.id)}>
-                                                <span className={`text-sm cursor-pointer ${item.level === 0 ? 'font-bold text-gray-800' : 'font-medium text-gray-600'}`}>
-                                                    {item.name}
-                                                </span>
-                                                {searchTerm && item.parentName && (
-                                                    <span className="text-[10px] text-gray-400">Thuộc: {item.parentName}</span>
-                                                )}
+                                                {/* Nút Toggle (Chỉ hiện nếu có con và không search) */}
                                                 {!searchTerm && (
-                                                    <span className="text-xs text-gray-400 mt-0.5 line-clamp-1 max-w-[200px]">
-                                                        {item.description}
-                                                    </span>
+                                                    <button
+                                                        onClick={() => toggleCollapse(item.id)}
+                                                        className={`p-1 rounded hover:bg-gray-200 text-gray-500 transition-all ${!hasChildren ? 'invisible' : ''}`}
+                                                    >
+                                                        {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+                                                    </button>
                                                 )}
+
+                                                {/* Ảnh/Icon */}
+                                                <div className={`relative w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200 flex items-center justify-center cursor-pointer
+                                                                ${isDeleted ? 'bg-gray-100' : (item.level === 0 ? 'bg-blue-50' : 'bg-gray-50')}`}
+                                                     onClick={() => hasChildren && !searchTerm && toggleCollapse(item.id)}
+                                                >
+                                                    {item.icon ? (
+                                                        <img src={item.icon} alt={item.name} className={`w-full h-full object-cover ${isDeleted ? 'grayscale' : ''}`} />
+                                                    ) : (
+                                                        isDeleted 
+                                                            ? <Trash2 size={16} className="text-red-300"/> 
+                                                            : (item.level === 0 ? <Folder size={18} className="text-blue-500" /> : <FileText size={16} className="text-gray-400" />)
+                                                    )}
+                                                </div>
+
+                                                {/* Tên & Mô tả */}
+                                                <div className="flex flex-col select-none" onClick={() => hasChildren && !searchTerm && toggleCollapse(item.id)}>
+                                                    <span className={`text-sm cursor-pointer 
+                                                        ${item.level === 0 ? 'font-bold' : 'font-medium'} 
+                                                        ${isDeleted ? 'text-red-500 line-through decoration-red-300' : 'text-gray-800'}` // Gạch ngang nếu xóa
+                                                    }>
+                                                        {item.name}
+                                                        {isDeleted && <span className="ml-2 text-[11px] text-red-400 italic no-underline font-normal">(Đã xóa)</span>}
+                                                    </span>
+                                                    
+                                                    {searchTerm && item.parentName && (
+                                                        <span className="text-[10px] text-gray-400">Thuộc: {item.parentName}</span>
+                                                    )}
+                                                    
+                                                    {!searchTerm && (
+                                                        <span className={`text-xs mt-0.5 line-clamp-1 max-w-[200px] ${isDeleted ? 'text-red-300' : 'text-gray-400'}`}>
+                                                            {item.description}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    </td>
+                                        </td>
 
-                                    {/* Loại */}
-                                    <td className="px-6 py-4">
-                                        <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded">
-                                            {item.type || 'N/A'}
-                                        </span>
-                                    </td>
+                                        {/* Loại */}
+                                        <td className={`px-6 py-4 ${isDeleted ? 'opacity-50' : ''}`}>
+                                            <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded">
+                                                {item.type || 'N/A'}
+                                            </span>
+                                        </td>
 
-                                    {/* Sản phẩm */}
-                                    <td className="px-6 py-4">
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700`}>
-                                            {item.productCount || 0} sản phẩm
-                                        </span>
-                                    </td>
+                                        {/* Sản phẩm */}
+                                        <td className={`px-6 py-4 ${isDeleted ? 'opacity-50' : ''}`}>
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700`}>
+                                                {item.productCount || 0} sản phẩm
+                                            </span>
+                                        </td>
 
-                                    {/* Hành động */}
-                                    <td className="px-6 py-4 text-right">
-                                        <div className="flex items-center justify-end gap-2">
-                                            <button 
-                                                onClick={() => onEditCategory && onEditCategory(item)}
-                                                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
-                                            >
-                                                <Edit className="w-4 h-4" />
-                                            </button>
-                                            <button 
-                                                onClick={() => onDeleteCategory && onDeleteCategory(item.id)}
-                                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </td>
+                                        {/* Hành động */}
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex items-center justify-end gap-2">
+                                                
+                                                {isDeleted ? (
+                                                    // === NẾU ĐÃ XÓA: HIỆN NÚT KHÔI PHỤC ===
+                                                    <button
+                                                        onClick={() => onRestoreCategory && onRestoreCategory(item.id)}
+                                                        className="p-2 text-orange-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all"
+                                                        title="Khôi phục danh mục"
+                                                    >
+                                                        <RotateCcw className="w-4 h-4" />
+                                                    </button>
+                                                ) : (
+                                                    // === NẾU CHƯA XÓA: HIỆN SỬA VÀ XÓA ===
+                                                    <>
+                                                        <button
+                                                            onClick={() => onEditCategory && onEditCategory(item)}
+                                                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
+                                                            title="Chỉnh sửa"
+                                                        >
+                                                            <Edit className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => onDeleteCategory && onDeleteCategory(item.id)}
+                                                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                                                            title="Xóa danh mục"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </>
+                                                )}
 
-                                </tr>
-                            );
-                        })
-                    )}
-                </tbody>
-            </table>
+                                            </div>
+                                        </td>
+
+                                    </tr>
+                                );
+                            })
+                        )}
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
     )
 }
 
