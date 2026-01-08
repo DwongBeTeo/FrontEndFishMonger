@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Input from "../components/ui/Input";
+import Input from "../components/common/Input";
 import { LoaderCircle } from "lucide-react";
 import { assets } from "../assets/asset";
 import toast from "react-hot-toast";
 import axiosConfig from "../util/axiosConfig";
 import { API_ENDPOINTS } from "../util/apiEndpoints";
 import { validateEmail } from "../util/Validation";
-import uploadProfileImage from "../util/uploadProfileImage";
-import ProfilePhotoSelector from "../components/ui/ProfilePhotoSelector";
+import uploadImage from "../util/uploadImage";
+import ProfilePhotoSelector from "../components/common/ProfilePhotoSelector";
 
 const Signup = () => {
     const [username, setUsername] = useState('');
@@ -42,7 +42,7 @@ const Signup = () => {
         try {
             // upload profile image if exists
             if (profileImage) {
-                const imageUrl = await uploadProfileImage(profileImage);
+                const imageUrl = await uploadImage(profileImage);
                 profileImageUrl = imageUrl || '';
             }
             await axiosConfig.post(API_ENDPOINTS.REGISTER, {

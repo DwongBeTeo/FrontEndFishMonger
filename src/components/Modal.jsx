@@ -10,9 +10,9 @@ export const Modal = ({isOpen, onClose, children, title}) => {
     return (
         // form thêm mới (form nổi bọt)
         <div className="fixed inset-0 z-50 flex items-center justify-center w-full h-full overflow-hidden bg-black/40 backdrop-blur-sm">
-            <div className="relative p-4 w-full max-w-2xl max-h-[90vh]">
+            <div className="relative p-4 w-full max-w-2xl max-h-[90vh] h-full flex">
                 {/* Modal header */}
-                <div ref={formRef} className="relative bg-white rounded-xl shadow-2xl border border-gray-100">
+                <div ref={formRef} className="flex flex-col h-full overflow-hidden relative bg-white rounded-xl shadow-2xl border border-gray-100">
                     {/* Modal content */}
                     <div className="flex items-center justify-between p-5 md:p-6 border-b border-gray-100 rounded-t-xl">
                         <h3 className="text-xl font-semibold text-gray-800">
@@ -29,7 +29,7 @@ export const Modal = ({isOpen, onClose, children, title}) => {
                     </div>
 
                     {/* Modal body */}
-                    <div className="p-5 md:p-6 text-gray-700">
+                    <div className="flex-1 min-h-0 bg-white">
                         {children}
                     </div>
                 </div>

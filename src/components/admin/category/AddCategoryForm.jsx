@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import Input from '../../ui/Input';
+import Input from '../../common/Input';
 import { LoaderCircle } from 'lucide-react';
 
 const AddCategoryForm = ({ onClose, onSubmit, isEditing, initialData, categories = [] }) => {

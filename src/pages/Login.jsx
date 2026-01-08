@@ -1,7 +1,7 @@
 import { useContext, useState } from "react";
 import AuthContext from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
-import Input from "../components/ui/Input";
+import Input from "../components/common/Input";
 import { LoaderCircle } from "lucide-react";
 import { assets } from "../assets/asset";
 import axiosConfig from "../util/axiosConfig";

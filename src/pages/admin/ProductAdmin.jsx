@@ -1,12 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, use } from 'react';
 import { Plus, Search, Filter, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import ProductList from '../../components/admin/product/ProductList';
 import axiosConfig from '../../util/axiosConfig';
 import { API_ENDPOINTS } from '../../util/apiEndpoints';
+import { Modal } from '../../components/Modal';
+import AddProductForm from '../../components/admin/product/AddProductForm';
 
 const ProductAdmin = () => {
     const [loading, setLoading] = useState(false);
+    const [productData, setProductData] = useState([]);
+
+    // State quản lý Modal
+    const [openModal, setOpenModal] = useState(false);
+    const [modalType, setModalType] = useState('ADD'); // 'ADD' hoặc 'EDIT'
+    const [selectedProduct, setSelectedProduct] = useState(null);
     
     // 1. State lưu danh sách sản phẩm & phân trang
     const [pagination, setPagination] = useState({
@@ -80,26 +88,44 @@ const ProductAdmin = () => {
 
     // --- EFFECT ---
 
-    // 1. Chạy 1 lần khi mount: Lấy danh mục & Lấy sản phẩm ban đầu
+    // --- SỬA LẠI PHẦN EFFECT ---
+
+    // Dùng useRef để giữ debounce timeout, tránh bị reset mỗi lần render
+    const debounceRef = React.useRef(null);
+
+    useEffect(() => {
+        // Hàm gọi API
+        const loadData = () => {
+            fetchProducts(0);
+        };
+
+        // Nếu chỉ thay đổi category hoặc status -> Gọi ngay
+        // Nhưng nếu đang gõ keyword -> Cần debounce
+        if (filters.keyword) {
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+            debounceRef.current = setTimeout(() => {
+                loadData();
+            }, 500);
+        } else {
+            // Nếu không có keyword (hoặc keyword rỗng), gọi ngay lập tức khi đổi category/status
+            // Tuy nhiên để an toàn và mượt mà, ta có thể debounce nhẹ 300ms cho tất cả
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+            debounceRef.current = setTimeout(() => {
+                loadData();
+            }, 300);
+        }
+
+        return () => {
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+        };
+        // Gộp tất cả dependency vào đây
+    }, [filters.keyword, filters.categoryId, filters.status]);
+
+    // Xóa bỏ useEffect([]) gọi fetchCategories ban đầu nếu không cần thiết
+    // Hoặc chỉ giữ lại cái gọi Categories
     useEffect(() => {
         fetchCategories();
-        // fetchProducts(0);
     }, []);
-
-    // 2. Lắng nghe sự thay đổi của Filters (Category, Status)
-    // Khi chọn dropdown -> Gọi API ngay lập tức và reset về trang 0
-    useEffect(() => {
-        fetchProducts(0);
-    }, [filters.categoryId, filters.status]);
-
-    // 3. Xử lý Debounce cho Keyword (Chờ người dùng ngừng gõ 500ms mới gọi API)
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            fetchProducts(0); // Reset về trang 0 khi tìm kiếm
-        }, 500); // Delay 500ms
-
-        return () => clearTimeout(timer); // Cleanup function
-    }, [filters.keyword]);
 
 
     // --- HANDLERS ---
@@ -121,10 +147,71 @@ const ProductAdmin = () => {
         // fetchProducts(0) sẽ tự chạy do useEffect lắng nghe filters thay đổi
     };
 
-    // ... (Giữ nguyên các hàm handleEdit, handleDelete, render...)
+    // Mở Modal Thêm mới
+    const handleOpenAddModal = () => {
+        setModalType('ADD');
+        setSelectedProduct(null); // Reset dữ liệu cũ
+        setOpenModal(true);
+    };
 
+    // Mở Modal Chỉnh sửa
+    const handleOpenEditModal = (product) => {
+        setModalType('EDIT');
+        setSelectedProduct(product);
+        setOpenModal(true);
+    };
 
-    console.log("State Pagination hiện tại:", pagination);
+    // Đóng Modal
+    const handleCloseModal = () => {
+        setOpenModal(false);
+        setSelectedProduct(null);
+    };
+
+    // Xử lý chung cho cả Thêm và Sửa (Submit Form)
+    const handleSubmitProduct = async (formData) => {
+        try {
+            if(modalType === 'ADD') {
+                // Logic Thêm mới sản phẩm
+                await axiosConfig.post(API_ENDPOINTS.ADD_PRODUCT, formData);
+                toast.success('Thêm sản phẩm thành công');
+            }else {
+                // Logic Cập nhật sản phẩm
+                // formData lúc này đã có id từ selectedProduct (được merge ở form con)
+                await axiosConfig.put(API_ENDPOINTS.UPDATE_PRODUCT(selectedProduct.id), formData);
+                toast.success('Cập nhật sản phẩm thành công');
+            }
+            handleCloseModal();
+            fetchProducts();
+        } catch (error) {
+            console.error('Error submitting category:', error);
+            // Lấy message lỗi từ backend trả về nếu có
+            const msg = error.response?.data?.message || error.message;
+            toast.error(`Thất bại: ${msg}`);
+            throw error; // Ném lỗi để form con biết mà tắt loading
+        }
+    }
+
+    // delete product
+    const handleDeleteProduct = async (productId) => {
+        if(window.confirm('Bạn có chắc chắn muốn xóa sản phẩm này không?')){
+            try {
+                await axiosConfig.delete(API_ENDPOINTS.DELETE_PRODUCT(productId));
+                toast.success('Xóa sản phẩm thành công');
+                fetchProducts();
+            } catch (error) {
+                console.error('Error deleting product:', error);
+                const msg = error.response?.data?.message || error.message;
+                toast.error(`Xóa sản phẩm thất bại: ${msg}`);
+            }
+        }
+    }
+    
+    useEffect(() => {
+        if (pagination.products.length > 0) {
+            console.log("Dữ liệu Pagination mới cập nhật:", pagination);
+        }
+    }, [pagination]); // Chỉ chạy khi pagination thay đổi
+
     return (
         <div className="my-5 mx-auto px-4">
             {/* Header */}
@@ -134,7 +221,10 @@ const ProductAdmin = () => {
                     <p className="text-sm text-gray-500 mt-1">Tổng số: {pagination.totalElements} sản phẩm</p>
                 </div>
                 
-                <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-sm transition-all font-medium">
+                <button 
+                    onClick={handleOpenAddModal}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-sm transition-all font-medium"
+                >
                     <Plus size={18} />
                     <span>Thêm sản phẩm</span>
                 </button>
@@ -206,8 +296,24 @@ const ProductAdmin = () => {
             <ProductList 
                 products={pagination.products}
                 isLoading={loading}
-                // onEdit... onDelete...
+                onEdit={handleOpenEditModal}
+                onDelete={handleDeleteProduct}
             />
+
+            {/* Modal add and edit product */}
+            <Modal
+                isOpen={openModal}
+                onClose={handleCloseModal}
+                title={modalType === 'ADD' ? 'Thêm sản phẩm mới' : 'Chỉnh sửa sản phẩm'}
+            >
+                <AddProductForm 
+                    onSubmit={handleSubmitProduct}
+                    onClose={handleCloseModal}
+                    isEditing={modalType === 'EDIT'}
+                    initialData={selectedProduct}
+                    categories={categories}
+                />
+            </Modal>
 
             {/* Pagination Controls */}
             <div className="flex justify-between items-center mt-4 px-2 text-sm text-gray-600">
