@@ -97,7 +97,7 @@ const AddCategoryForm = ({ onClose, onSubmit, isEditing, initialData, categories
     };
 
     return (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col p-6 md:p-8 overflow-y-auto max-h-[80vh]">
             
             {/* Hiển thị lỗi nếu có */}
             {error && (
@@ -106,7 +106,7 @@ const AddCategoryForm = ({ onClose, onSubmit, isEditing, initialData, categories
                 </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Tên danh mục */}
                 <div className="col-span-2">
                     <Input 

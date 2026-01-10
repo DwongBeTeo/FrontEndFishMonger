@@ -1,8 +1,8 @@
 import { useContext } from "react";
 import AuthContext from "../context/AuthContext";
 import { Outlet } from "react-router-dom";
-import MenuBar from "./MenuBar";
 import Sidebar from "./Sidebar";
+import MenuBar from "./Header/MenuBar";
 
 const MainLayout = () => {
     const { user } = useContext(AuthContext);

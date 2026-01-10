@@ -22,7 +22,15 @@ export const API_ENDPOINTS = {
         DELETE_PRODUCT: (productId) => `/admin/products/${productId}`,
     // End admin
 
-    
+    // user
+        // Product endpoints
+        GET_PRODUCT_FOR_HOME: '/products?page=0&size=8',
+        GET_ALL_ACTIVE_PRODUCTS: '/products',
+        GET_4PRODUCTS_BY_CATEGORY: (categoryId) => `/products/category/${categoryId}?page=0&size=4`,
+        // lấy tất cả sản phẩm có chung CategoryId
+        GET_ALL_PRODUCTS_BY_CATEGORY: (categoryId) => `/products/category/${categoryId}`,
+        GET_PRODUCT_DETAILS: (productId) => `/products/${productId}`,
+    // End user
     // cloudinary
     UPLOAD_IMAGE: `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`
 }

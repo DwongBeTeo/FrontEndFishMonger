@@ -8,6 +8,7 @@ import ProductAdmin from "./pages/admin/ProductAdmin";
 import Home from "./pages/Home";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MainLayout from "./components/MainLayout";
+import CategoryPage from "./pages/user/CategoryPage";
 
 
 const App = () => {
@@ -21,6 +22,7 @@ const App = () => {
           <Route element={<MainLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="/product" element={<Product />} />
+            <Route path="/category/:slug/:categoryId" element={<CategoryPage />} />
             
             {/* Pages Admin */}
             <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>

@@ -1,10 +1,16 @@
 import logo from './images/logo.png';
 import login_bg from './images/login-bg.jpg';
-import { Fish, List, ListOrdered, ShoppingCart } from 'lucide-react';
+import slider1 from './images/slider1.jpg';
+import slider2 from './images/slider2.jpg';
+import slider3 from './images/slider3.jpg';
+import { Fish, Home, List, ListOrdered, ShoppingCart } from 'lucide-react';
 
 export const assets = {
     logo,
-    login_bg
+    login_bg,
+    slider1,
+    slider2,
+    slider3,
 }
 
 export const SIDE_BAR_USER = [
@@ -32,6 +38,12 @@ export const SIDE_BAR_USER = [
         icon: ListOrdered,
         path: '/order',
     },
+    {
+        id: '05',
+        label: 'Home',
+        icon: Home,
+        path: '/',
+    }
     //còn thiếu ServiceType, Employee, Appointment
 ]
 
