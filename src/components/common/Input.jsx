@@ -2,7 +2,7 @@ import {useState} from "react";
 import {Eye, EyeOff} from "lucide-react";
 import Select from "react-select";
 
-const Input = ({label, value, onChange, placeholder, type, isSelect, options}) => {
+const Input = ({label, value, onChange, placeholder, type, isSelect, options, multiline, disabled}) => {
     const [showPassword, setShowPassword] = useState(false);
 
     const toggleShowPassword = () => {
@@ -51,6 +51,15 @@ const Input = ({label, value, onChange, placeholder, type, isSelect, options}) =
                     //     ))}
 
                     // </select>
+                ) : multiline ? (
+                    // Logic cho Textarea (Địa chỉ)
+                    <textarea
+                        className={`w-full bg-transparent outline-none border border-gray-300 rounded-md py-2 px-3 text-gray-700 focus:border-cyan-500 min-h-[100px] ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                        placeholder={placeholder}
+                        value={value}
+                        onChange={(e) => onChange({ target: { value: e.target.value } })}
+                        disabled={disabled}
+                    />
                 ) : (
                     <input
                         className="w-full bg-transparent outline-none border border-gray-300 rounded-md py-2 px-3 pr-10 text-gray-700 leading-tight focus:outline-none focus:border-blue-500"

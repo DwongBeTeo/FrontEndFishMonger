@@ -9,12 +9,18 @@ import Home from "./pages/Home";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MainLayout from "./components/MainLayout";
 import CategoryPage from "./pages/user/CategoryPage";
+import AquariumPage from "./pages/user/AquariumPage";
+import SearchPage from "./pages/user/SearchPage";
+import CheckoutPage from "./pages/user/CheckoutPage";
+import CartPage from "./pages/user/CartPage";
+import MyOrdersPage from "./pages/user/order/MyOrdersPage";
+import OrderDetailPage from "./pages/user/order/OrderDetailPage";
 
 
 const App = () => {
   return (
     <>
-      <BrowserRouter>
+      
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/sign-up" element={<Signup />} />
@@ -23,7 +29,8 @@ const App = () => {
             <Route path="/" element={<Home />} />
             <Route path="/product" element={<Product />} />
             <Route path="/category/:slug/:categoryId" element={<CategoryPage />} />
-            
+            <Route path="/aquarium" element={<AquariumPage />} />
+            <Route path="/search" element={<SearchPage />} />
             {/* Pages Admin */}
             <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
                 <Route path="/categoryAdmin" element={<CategoryAdmin />} />
@@ -34,12 +41,18 @@ const App = () => {
 
             {/* Pages User */}
             <Route element={<ProtectedRoute allowedRoles={['USER']} />}>
-
+              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/cart" element={<CartPage />} />
+              {/* <Route path="/order-success" element={<OrderSuccessPage />} /> */}
+              <Route path="/my-orders" element={<MyOrdersPage />} />
+            </Route>
+            {/* Pages for both USER and ADMIN */}
+            <Route element={<ProtectedRoute allowedRoles={['USER', 'ADMIN']} />}>
+              <Route path="/order/:orderId" element={<OrderDetailPage />} />
             </Route>
           </Route>
 
         </Routes>
-      </BrowserRouter>
     </>
   )
 }

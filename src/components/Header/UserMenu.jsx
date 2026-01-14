@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { NavLink } from 'react-router-dom';
-import { User, LogOut } from 'lucide-react';
+import { User, LogOut, Package } from 'lucide-react';
 import AuthContext from '../../context/AuthContext';
 
 const UserMenu = () => {
@@ -44,6 +44,7 @@ const UserMenu = () => {
                     {user ? (
                         // Đã đăng nhập
                         <>
+                            {/* Header User info */}
                             <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50">
                                 <div className="flex items-center gap-3">
                                     <div className="flex items-center justify-center w-8 h-8 bg-purple-100 rounded-full">
@@ -55,6 +56,20 @@ const UserMenu = () => {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* --- MỚI: MENU ITEM ĐƠN HÀNG --- */}
+                            <div className="py-1 border-b border-gray-100">
+                                <NavLink 
+                                    to="/my-orders" 
+                                    onClick={() => setShowDropdown(false)}
+                                    className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                                >
+                                    <Package className="w-4 h-4 text-cyan-600" />
+                                    <span>Đơn hàng của tôi</span>
+                                </NavLink>
+                            </div>
+
+                            {/* Log out */}
                             <div className="py-1">
                                 <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors">
                                     <LogOut className="w-4 h-4" />

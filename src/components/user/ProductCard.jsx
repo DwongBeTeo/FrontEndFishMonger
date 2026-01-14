@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingCart } from 'lucide-react';
+import { CartContext } from '../../context/CartContext';
 
 const ProductCard = ({ product }) => {
+  const { addToCart } = useContext(CartContext);
   // Format tiền tệ
   const formatPrice = (price) => 
     new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
@@ -35,7 +37,10 @@ const ProductCard = ({ product }) => {
         <div className="flex items-center justify-between mt-3">
           <span className="font-bold text-blue-600 text-lg">{formatPrice(product.price)}</span>
           
-          <button className="p-2 bg-gray-100 rounded-full hover:bg-blue-600 hover:text-white transition-colors">
+          <button
+            onClick={() => addToCart(product.id, 1)}
+            className="p-2 bg-gray-100 rounded-full hover:bg-blue-600 hover:text-white transition-colors"
+          >
             <ShoppingCart size={18} />
           </button>
         </div>

@@ -29,8 +29,16 @@ export const API_ENDPOINTS = {
         GET_4PRODUCTS_BY_CATEGORY: (categoryId) => `/products/category/${categoryId}?page=0&size=4`,
         // lấy tất cả sản phẩm có chung CategoryId
         GET_ALL_PRODUCTS_BY_CATEGORY: (categoryId) => `/products/category/${categoryId}`,
+        GET_A_PRODUCT_AQUARIUM_BY_CATEGORYID: (categoryId) => `/products/category/${categoryId}`,
         GET_PRODUCT_DETAILS: (productId) => `/products/${productId}`,
+        SEARCH_PRODUCT: '/products/search',
     // End user
+    // cart
+        GET_CART: '/cart',
+        ADD_TO_CART: '/cart',
+        UPDATE_QUANTITY: (cartItemId) => `/cart/items/${cartItemId}`,
+        REMOVE_ITEM: (cartItemId) => `/cart/items/${cartItemId}`,
+    // endCart
     // cloudinary
     UPLOAD_IMAGE: `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`
 }

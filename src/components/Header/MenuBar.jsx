@@ -6,6 +6,8 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import LogoSection from './LogoSection';
 import DesktopNav from './DesktopNav';
 import UserMenu from './UserMenu';
+import SearchBar from './SearchBar';
+import CartWidget from './CartWidget';
 // Đã bỏ import Input từ react-select vì không cần thiết và gây lỗi giao diện
 
 const MenuBar = () => {
@@ -24,17 +26,8 @@ const MenuBar = () => {
           {/* 3. Right Actions (Search + Cart + UserMenu) */}
           <div className="flex items-center gap-6">
             
-            {/* Search Bar (Có thể tách riêng nếu muốn) */}
-            <div className="hidden lg:block relative w-[280px]">
-              <input
-                type="text"
-                className="w-full h-10 pl-10 pr-4 rounded-full bg-gray-100 border-none text-sm text-gray-700 placeholder-gray-400 focus:ring-2 focus:ring-cyan-500 focus:bg-white transition-all outline-none"
-                placeholder="Tìm kiếm cá, bể, thức ăn..."
-              />
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[20px]">
-                search
-              </span>
-            </div>
+            {/* Search Bar */}
+            <SearchBar />
 
             <div className="flex items-center gap-3">
                 {/* Mobile Search Button */}
@@ -43,12 +36,7 @@ const MenuBar = () => {
                 </button>
 
                 {/* Cart Button */}
-                <button className="relative flex items-center justify-center size-10 rounded-full hover:bg-gray-100 transition-colors text-gray-900">
-                  <span className="material-symbols-outlined">shopping_cart</span>
-                  <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-white">
-                    2
-                  </span>
-                </button>
+                <CartWidget />
 
                 {/* User Menu Component */}
                 <UserMenu />
