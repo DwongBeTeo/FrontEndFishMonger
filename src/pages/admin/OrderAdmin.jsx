@@ -2,12 +2,25 @@ import React, { useEffect, useState } from 'react';
 import { Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axiosConfig from '../../util/axiosConfig';
+import Swal from 'sweetalert2';
 
+const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+        toast.onmouseenter = Swal.stopTimer;
+        toast.onmouseleave = Swal.resumeTimer;
+    }
+});
 const OrderAdmin = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [keyword, setKeyword] = useState('');
     const navigate = useNavigate();
+
 
     // Hàm gọi API lấy danh sách
     const fetchOrders = async (search = '') => {
@@ -37,31 +50,97 @@ const OrderAdmin = () => {
         fetchOrders(keyword);
     };
 
-    // --- HÀM 1: CẬP NHẬT TRẠNG THÁI ĐƠN ---
+    // --- HÀM 1: CẬP NHẬT TRẠNG THÁI ĐƠN (ĐÃ FIX) ---
     const handleStatusChange = async (orderId, newStatus) => {
-        if (!window.confirm(`Bạn có chắc muốn chuyển trạng thái đơn #${orderId} sang ${newStatus}?`)) return;
+        // 1. Tìm đơn hàng cũ để backup (đề phòng lỗi thì revert lại)
+        const previousOrders = [...orders]; 
         
+        // 2. CẬP NHẬT GIAO DIỆN NGAY LẬP TỨC (Optimistic UI)
+        // Việc này giúp cái thẻ Select không bị nhảy về giá trị cũ
+        setOrders(prevOrders => prevOrders.map(order => 
+            order.id === orderId ? { ...order, status: newStatus } : order
+        ));
+
         try {
-            await axiosConfig.put(`/admin/order/${orderId}/status`, null, {
+            // 3. Gọi API
+            const url = `/admin/order/${orderId}/status`;
+            
+            // Axios PUT: tham số thứ 2 là body (null), tham số thứ 3 là config (params)
+            const response = await axiosConfig.put(url, null, {
                 params: { status: newStatus }
             });
-            alert("Cập nhật thành công!");
-            fetchOrders(keyword); // Load lại dữ liệu
+
+            //4. QUAN TRỌNG: Cập nhật lại state bằng dữ liệu thật từ Server trả về
+            // Lúc này response.data chứa OrderDTO mới nhất (đã có paymentStatus = PAID)
+            const updatedOrder = response.data;
+            setOrders(prevOrders => prevOrders.map(order => 
+                order.id === orderId ? updatedOrder : order
+            ));
+
+            Toast.fire({
+                icon: 'success',
+                title: `Cập nhật trạng thái: ${newStatus}`
+            });
+
+            // Nếu thành công: Không cần làm gì thêm vì UI đã cập nhật ở bước 2 rồi
+            // Hoặc nếu muốn chắc ăn thì fetch lại ngầm:
+            // fetchOrders(keyword); 
+
         } catch (error) {
-            alert(error.response?.data?.message || "Lỗi cập nhật trạng thái");
+            console.error("Lỗi cập nhật:", error);
+            
+            // 4. NẾU LỖI -> TRẢ LẠI TRẠNG THÁI CŨ
+            setOrders(previousOrders);
+            Swal.fire({
+                icon: 'error',
+                title: 'Cập nhật thất bại',
+                text: error.response?.data?.message || error.message,
+            });
         }
     };
 
     // --- HÀM 2: DUYỆT YÊU CẦU HỦY ---
     const handleReviewCancel = async (orderId, approve) => {
         let reason = "";
-        if (!approve) { // Nếu từ chối, cần nhập lý do
-            reason = prompt("Nhập lý do từ chối hủy:");
-            if (reason === null) return; // Nếu user ấn Cancel prompt
+        // TRƯỜNG HỢP 1: TỪ CHỐI HỦY (Cần nhập lý do)
+        if (!approve) {
+            const { value: inputReason, isDismissed } = await Swal.fire({
+                title: 'Từ chối hủy đơn?',
+                input: 'textarea', // Thay thế prompt bằng input textarea đẹp hơn
+                inputLabel: 'Vui lòng nhập lý do từ chối',
+                inputPlaceholder: 'Nhập lý do tại đây...',
+                inputAttributes: {
+                    'aria-label': 'Nhập lý do từ chối'
+                },
+                showCancelButton: true,
+                confirmButtonText: 'Gửi từ chối',
+                cancelButtonText: 'Hủy bỏ',
+                confirmButtonColor: '#d33',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'Bạn cần viết lý do!';
+                    }
+                }
+            });
+
+            if (isDismissed) return; // Nếu user bấm nút Hủy hoặc click ra ngoài
+            reason = inputReason;
+        } 
+        // TRƯỜNG HỢP 2: ĐỒNG Ý HỦY (Chỉ cần confirm)
+        else {
+            const result = await Swal.fire({
+                title: 'Xác nhận hủy đơn?',
+                text: "Bạn có chắc chắn muốn chấp thuận yêu cầu hủy đơn này?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Đồng ý hủy',
+                cancelButtonText: 'Suy nghĩ lại'
+            });
+
+            if (!result.isConfirmed) return;
         }
-
-        if (!window.confirm(approve ? "Đồng ý hủy đơn này?" : "Từ chối yêu cầu hủy?")) return;
-
         try {
             await axiosConfig.put(`/admin/order/${orderId}/review-cancel`, null, {
                 params: { 
@@ -69,10 +148,21 @@ const OrderAdmin = () => {
                     reason: reason 
                 }
             });
-            alert("Đã xử lý yêu cầu!");
+            // Thông báo thành công
+            await Swal.fire({
+                icon: 'success',
+                title: 'Đã xử lý xong!',
+                text: approve ? 'Đơn hàng đã được hủy.' : 'Đã từ chối yêu cầu hủy.',
+                timer: 2000,
+                showConfirmButton: false
+            });
             fetchOrders(keyword);
         } catch (error) {
-            alert(error.response?.data?.message || "Lỗi xử lý");
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi xử lý',
+                text: error.response?.data?.message || "Có lỗi xảy ra",
+            });
         }
     };
 

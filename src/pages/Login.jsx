@@ -126,7 +126,7 @@ const Login = () => {
                             </p>
 
                             <a className="text-sm text-slate-800 text-center mt-6">
-                                Forgot Password(chưa hoàn thiện)?
+                                Forgot Password?(Chưa hoàn thành)
                             </a>
 
                         </div>

@@ -17,7 +17,7 @@ const CategoryPage = () => {
   // State phân trang
   const [pagination, setPagination] = useState({
     page: 0,
-    size: 2, // Grid 4 cột thì để size 8, 12 hoặc 16 nhìn sẽ đẹp
+    size: 3, // Grid 4 cột thì để size 8, 12 hoặc 16 nhìn sẽ đẹp
     totalPages: 0,
     totalElements: 0
   });

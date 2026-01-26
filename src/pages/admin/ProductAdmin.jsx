@@ -22,7 +22,7 @@ const ProductAdmin = () => {
         totalPages: 0,
         totalElements: 0,
         currentPage: 0,
-        pageSize: 11
+        pageSize: 9
     });
 
     // 2. State lưu bộ lọc (Search & Filter)

@@ -8,13 +8,13 @@ const ProtectedRoute = ({ allowedRoles }) => {
     const { user, isLoading } = useContext(AuthContext);
 
     // --- THÊM DÒNG NÀY ĐỂ DEBUG ---
-    if (user) {
-        console.log("--- DEBUG PROTECTED ROUTE ---");
-        console.log("User trong Context:", user);
-        console.log("Role mong đợi (allowed):", allowedRoles);
-        const currentRole = user.role?.name || user.role || "USER"; 
-        console.log("Role thực tế tính toán được:", currentRole);
-    }
+    // if (user) {
+    //     console.log("--- DEBUG PROTECTED ROUTE ---");
+    //     console.log("User trong Context:", user);
+    //     console.log("Role mong đợi (allowed):", allowedRoles);
+    //     const currentRole = user.role?.name || user.role || "USER"; 
+    //     console.log("Role thực tế tính toán được:", currentRole);
+    // }
 
     if(isLoading) {
         return (

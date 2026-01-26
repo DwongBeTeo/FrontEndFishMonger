@@ -1,11 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axiosConfig from '../../../util/axiosConfig';
 import toast from 'react-hot-toast';
 import BANK_INFO from '../../../util/bankConfig';
+import AuthContext from '../../../context/AuthContext';
 
+// Trang này dùng cho cả USER và ADMIN để xem chi tiết đơn hàng
 const OrderDetailPage = () => {
     const { orderId } = useParams(); // Lấy ID từ URL
+    const { user } = useContext(AuthContext);
     const navigate = useNavigate();
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -13,19 +16,37 @@ const OrderDetailPage = () => {
     useEffect(() => {
         const fetchOrderDetail = async () => {
             try {
-                // Gọi API lấy chi tiết đơn hàng
-                const res = await axiosConfig.get(`/order/${orderId}`);
+                // --- LOGIC QUAN TRỌNG Ở ĐÂY ---
+                let apiUrl = `/order/${orderId}`; // Mặc định là API của User
+                
+                // Nếu user là ADMIN
+                // Thì đổi sang gọi API của Admin
+                if (user?.authorities?.some(auth => auth.authority === 'ADMIN') || user?.role === 'ADMIN') {
+                     apiUrl = `/admin/order/${orderId}`;
+                }
+
+                const res = await axiosConfig.get(apiUrl);
                 setOrder(res.data);
             } catch (error) {
                 console.error("Lỗi tải đơn hàng:", error);
-                toast.error("Không tìm thấy đơn hàng!");
-                navigate('/my-orders');
+                alert("Không tìm thấy đơn hàng hoặc bạn không có quyền xem!");
+                
+                // Điều hướng về đúng trang danh sách tùy theo role
+                if (user?.role === 'ADMIN') {
+                    navigate('/orderAdmin'); // (Nếu bạn chưa có route này thì để /admin/orders)
+                } else {
+                    navigate('/my-orders');
+                }
             } finally {
                 setLoading(false);
             }
         };
-        fetchOrderDetail();
-    }, [orderId, navigate]);
+
+        // Chỉ gọi khi có user (đã load xong AuthContext)
+        if (user) {
+            fetchOrderDetail();
+        }
+    }, [orderId, navigate, user]);
 
     if (loading) return <div className="text-center py-20">Đang tải chi tiết đơn hàng...</div>;
     if (!order) return null;
@@ -42,8 +63,18 @@ const OrderDetailPage = () => {
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-5xl">
-            <button onClick={() => navigate('/my-orders')} className="text-gray-500 hover:text-cyan-600 mb-4 flex items-center gap-1">
-                <span className="material-symbols-outlined text-sm">arrow_back</span> Quay lại danh sách
+            <button 
+                onClick={() => {
+                    if (user?.role === "ADMIN") {
+                        navigate('/orderAdmin');
+                    }else{
+                        navigate('/my-orders');
+                    }
+                }} 
+                className="text-gray-500 hover:text-cyan-600 mb-4 flex items-center gap-1"
+            >
+                <span className="material-symbols-outlined text-sm">arrow_back</span>
+                {user?.role==='ADMIN' ? 'Quay lại trang quản lý' : 'Quay lại danh sách'}
             </button>
 
             <h1 className="text-2xl font-bold mb-6 text-gray-800">Chi tiết đơn hàng #{order.id}</h1>

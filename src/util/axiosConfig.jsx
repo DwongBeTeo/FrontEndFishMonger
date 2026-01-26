@@ -10,7 +10,7 @@ const axiosConfig = axios.create({
 });
 
 //list of endpoints that do not require authentication
-const exCludeEndpoints = ['/login', '/register', '/status', '/healthCheck', '/activate', '/products/**'];
+const exCludeEndpoints = ['/login', '/register', '/healthCheck', '/activate', '/products/**'];
 
 //request interceptor to add the auth token header to requests
 axiosConfig.interceptors.request.use((config) =>{
