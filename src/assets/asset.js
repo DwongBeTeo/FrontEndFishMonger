@@ -50,38 +50,45 @@ export const SIDE_BAR_USER = [
 export const SIDE_BAR_ADMIN = [
     {
         id: '01',
-        label: 'ProductAdmin',
+        label: 'Bảng Điều Khiển',
+        icon: Home,
+        path: '/dashboard',
+    },
+    {
+        id: '02',
+        label: 'Sản Phẩm',
         icon: Fish,
         path: '/productAdmin',
     },
     {
-        id: '02',
-        label: 'CategoryAdmin',
+        id: '03',
+        label: 'Loại Sản Phẩm',
         icon: List,
         path: '/categoryAdmin',
     },
     {
-        id: '03',
-        label: 'OrderAdmin',
+        id: '04',
+        label: 'Đơn Đặt Hàng',
         icon: ListOrdered,
         path: '/orderAdmin',
     },
     {
-        id: '04',
-        label: 'EmployeeAdmin',
+        id: '05',
+        label: 'Nhân Viên',
         icon: IdCardLanyard,
         path: '/employeeAdmin',
     },
     {
-        id: '05',
-        label: 'ServiceTypes',
+        id: '06',
+        label: 'Dịch Vụ',
         icon: Toolbox,
         path: '/serviceAdmin',
     },
     {
-        id: '06',
-        label: 'AppointmentAdmin',
+        id: '07',
+        label: 'Lịch Hẹn',
         icon: Calendar,
         path: '/appointmentAdmin',
-    }
+    },
+    
 ]

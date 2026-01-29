@@ -18,6 +18,7 @@ const ServiceAdmin = () => {
     const [keyword, setKeyword] = useState('');
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
+    const [totalElements, setTotalElements] = useState(0);
 
     // 1. Fetch Data
     const fetchServices = async () => {
@@ -32,6 +33,8 @@ const ServiceAdmin = () => {
             });
             const responseData = res.data;
             const total = responseData.page?.totalPages || 0;
+            const totalElems = responseData.page?.totalElements || 0;
+            setTotalElements(totalElems);
             setServices(responseData.content);
             setTotalPages(total);
         } catch (error) {
@@ -116,7 +119,7 @@ const ServiceAdmin = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Quản lý Dịch vụ</h1>
-                    <p className="text-sm text-gray-500 mt-1">Thiết lập các gói dịch vụ (Vệ sinh, Setup...)</p>
+                    <p className="text-sm text-gray-500 mt-1">Thiết lập các gói dịch vụ (Vệ sinh, Setup...) Tổng cộng: {totalElements} dịch vụ</p>
                 </div>
                 <button 
                     onClick={openCreateModal}

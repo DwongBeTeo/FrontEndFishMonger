@@ -81,6 +81,18 @@ const UserMenu = () => {
                                 </NavLink>
                             </div>
 
+                            {/* --- MỚI: MENU Address --- */}
+                            <div className="py-1 border-b border-gray-100">
+                                <NavLink 
+                                    to="/my-addresses" 
+                                    onClick={() => setShowDropdown(false)}
+                                    className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                                >
+                                    <Package className="w-4 h-4 text-cyan-600" />
+                                    <span>Sổ địa chỉ của tôi</span>
+                                </NavLink>
+                            </div>
+
                             {/* Log out */}
                             <div className="py-1">
                                 <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors">

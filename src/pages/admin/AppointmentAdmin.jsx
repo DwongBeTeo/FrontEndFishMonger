@@ -91,6 +91,81 @@ const AppointmentAdmin = () => {
         }
     };
 
+    // 4. Handle Cancel Appointment (Admin chủ động hủy)
+    const handleCancel = async (id) => {
+        const { value: reason, isConfirmed } = await Swal.fire({
+            title: 'Hủy lịch hẹn?',
+            text: "Vui lòng nhập lý do hủy lịch này:",
+            input: 'textarea',
+            inputPlaceholder: 'Ví dụ: Nhân viên bận đột xuất, Khách hàng yêu cầu hủy qua điện thoại...',
+            inputAttributes: {
+                'aria-label': 'Nhập lý do hủy'
+            },
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444', // Màu đỏ
+            confirmButtonText: 'Xác nhận hủy',
+            cancelButtonText: 'Quay lại',
+            inputValidator: (value) => {
+                if (!value) {
+                    return 'Bạn cần nhập lý do để hủy lịch!';
+                }
+            }
+        });
+
+        if (isConfirmed && reason) {
+            try {
+                await axiosConfig.patch(`/admin/appointments/${id}/cancel`, null, {
+                    params: { reason: reason }
+                });
+                Swal.fire('Đã hủy', 'Lịch hẹn đã được hủy thành công.', 'success');
+                fetchAppointments(); // Reload danh sách
+            } catch (error) {
+                Swal.fire('Lỗi', error.response?.data?.message || 'Không thể hủy lịch', 'error');
+            }
+        }
+    };
+
+    // 5. hàm xử lý Duyệt/Từ chối yêu cầu hủy
+    const handleReviewCancel = async (id, approve) => {
+        let reason = "";
+        if (!approve) {
+            const { value: inputReason } = await Swal.fire({
+                title: 'Từ chối yêu cầu hủy?',
+                input: 'textarea',
+                inputLabel: 'Lý do từ chối (sẽ gửi mail cho khách)',
+                inputPlaceholder: 'Ví dụ: Kỹ thuật viên đã lên đường...',
+                showCancelButton: true,
+                confirmButtonText: 'Gửi từ chối',
+                cancelButtonText: 'Quay lại',
+                inputValidator: (value) => {
+                    if (!value) return 'Bạn phải nhập lý do từ chối!';
+                }
+            });
+            if (!inputReason) return;
+            reason = inputReason;
+        } else {
+            const confirm = await Swal.fire({
+                title: 'Chấp nhận hủy lịch?',
+                text: "Lịch hẹn này sẽ bị hủy vĩnh viễn.",
+                icon: 'warning',
+                showCancelButton: true
+            });
+            if (!confirm.isConfirmed) return;
+        }
+
+        try {
+            await axiosConfig.put(`/admin/appointments/${id}/review-cancel`, null, {
+                params: { approve, reason }
+            });
+            Swal.fire('Thành công', 'Đã xử lý yêu cầu hủy.', 'success');
+            fetchAppointments(); // Reload dữ liệu
+        } catch (error) {
+            Swal.fire('Lỗi', error.response?.data?.message || 'Có lỗi xảy ra', 'error');
+        } finally{
+            setLoading(false);
+        }
+    };
+
     const handleAssignSuccess = () => {
         setAssignModalOpen(false);
         fetchAppointments();
@@ -142,6 +217,8 @@ const AppointmentAdmin = () => {
                 loading={loading}
                 onAssign={openAssignModal}
                 onUpdateStatus={handleUpdateStatus}
+                onCancel={handleCancel}
+                onReviewCancel = {handleReviewCancel}
             />
 
             {/* Pagination */}

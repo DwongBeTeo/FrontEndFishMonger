@@ -34,7 +34,8 @@ const MyAppointmentsPage = () => {
     const renderStatus = (status, paymentStatus) => {
         const styles = {
             'PENDING': { color: 'text-yellow-600', bg: 'bg-yellow-50', label: 'Chờ xác nhận' },
-            'CONFIRMED': { color: 'text-blue-600', bg: 'bg-blue-50', label: 'Đã xác nhận (Có thợ)' },
+            'CONFIRMED': { color: 'text-blue-600', bg: 'bg-blue-50', label: 'Đã xác nhận' },
+            'CANCEL_REQUESTED': { color: 'text-orange-600', bg: 'bg-orange-50', label: 'Đang chờ hủy...' },
             'IN_PROCESS': { color: 'text-purple-600', bg: 'bg-purple-50', label: 'Đang thực hiện' },
             'COMPLETED': { color: 'text-green-600', bg: 'bg-green-50', label: 'Hoàn thành' },
             'CANCELLED': { color: 'text-gray-500', bg: 'bg-gray-100', label: 'Đã hủy' }
@@ -55,10 +56,10 @@ const MyAppointmentsPage = () => {
         );
     };
 
-    // Hàm hủy lịch
+    // Hàm gửi yêu cầu hủy lịch
     const handleCancel = async (id) => {
         const { value: reason } = await Swal.fire({
-            title: 'Hủy lịch hẹn?',
+            title: 'Yêu cầu hủy lịch hẹn?',
             input: 'textarea',
             inputLabel: 'Lý do hủy',
             inputPlaceholder: 'Nhập lý do của bạn...',
@@ -67,17 +68,17 @@ const MyAppointmentsPage = () => {
             },
             showCancelButton: true,
             confirmButtonColor: '#d33',
-            confirmButtonText: 'Xác nhận Hủy',
+            confirmButtonText: 'Gửi yêu cầu',
             cancelButtonText: 'Quay lại'
         });
 
         if (reason) {
             try {
-                // PATCH /appointments/{id}/cancel
-                await axiosConfig.patch(`/appointments/${id}/cancel`, null, {
+                // PATCH /appointments/{id}/request-cancel
+                await axiosConfig.patch(`/appointments/${id}/request-cancel`, null, {
                     params: { reason }
                 });
-                Swal.fire('Đã hủy', 'Lịch hẹn đã được hủy thành công.', 'success');
+                Swal.fire('Đã gửi', 'Yêu cầu hủy đã được gửi. Vui lòng chờ Admin xác nhận.', 'success');
                 fetchHistory(); // Reload lại danh sách
             } catch (error) {
                 Swal.fire('Lỗi', error.response?.data?.message || 'Không thể hủy lịch này', 'error');
@@ -160,7 +161,7 @@ const MyAppointmentsPage = () => {
                                             onClick={() => handleCancel(appt.id)}
                                             className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center gap-1 hover:bg-red-50 px-3 py-1.5 rounded transition-colors"
                                         >
-                                            <XCircle size={16}/> Hủy lịch hẹn
+                                            <XCircle size={16}/> Yêu cầu hủy lịch
                                         </button>
                                     </div>
                                 )}

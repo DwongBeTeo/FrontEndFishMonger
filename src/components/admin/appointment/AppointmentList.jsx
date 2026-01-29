@@ -1,7 +1,7 @@
 import React from 'react';
-import { User, Clock, MapPin, Phone, CalendarCheck, MoreVertical, Hash } from 'lucide-react';
+import { User, Clock, MapPin, Phone, CalendarCheck, MoreVertical, Hash, XCircle, Mail, CheckCircle } from 'lucide-react';
 
-const AppointmentList = ({ appointments, loading, onAssign, onUpdateStatus }) => {
+const AppointmentList = ({ appointments, loading, onAssign, onUpdateStatus, onCancel, onReviewCancel }) => {
     
     // Helper hiển thị badge trạng thái
     const getStatusBadge = (status) => {
@@ -10,7 +10,7 @@ const AppointmentList = ({ appointments, loading, onAssign, onUpdateStatus }) =>
             CONFIRMED: 'bg-blue-100 text-blue-800 border-blue-200',
             IN_PROCESS: 'bg-purple-100 text-purple-800 border-purple-200',
             COMPLETED: 'bg-green-100 text-green-800 border-green-200',
-            CANCELLED: 'bg-gray-100 text-gray-600 border-gray-200',
+            CANCELLED: 'bg-orange-100 text-orange-800 border-orange-200 animate-pulse',
         };
         const labels = {
             PENDING: 'Chờ xác nhận',
@@ -18,6 +18,7 @@ const AppointmentList = ({ appointments, loading, onAssign, onUpdateStatus }) =>
             IN_PROCESS: 'Đang làm',
             COMPLETED: 'Hoàn thành',
             CANCELLED: 'Đã hủy',
+            CANCEL_REQUESTED: 'Khách yêu cầu hủy',
         };
         return (
             <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${styles[status] || 'bg-gray-100'}`}>
@@ -77,7 +78,7 @@ const AppointmentList = ({ appointments, loading, onAssign, onUpdateStatus }) =>
                                     </div>
                                 </td>
 
-                                {/* 2. Khách hàng (Tên + SĐT) */}
+                                {/* 2. Khách hàng (Tên + SĐT + email) */}
                                 <td className="px-6 py-4 align-top">
                                     <div className="flex gap-3">
                                         <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0 mt-0.5">
@@ -87,6 +88,9 @@ const AppointmentList = ({ appointments, loading, onAssign, onUpdateStatus }) =>
                                             <div className="font-semibold text-gray-900">{appt.username}</div>
                                             <div className="flex items-center gap-1 text-gray-500 text-xs mt-1">
                                                 <Phone size={12} /> {appt.phoneNumber}
+                                            </div>
+                                            <div className="flex items-center gap-1 text-gray-500 text-xs mt-1">
+                                                <Mail size={12} /> {appt.email}
                                             </div>
                                         </div>
                                     </div>
@@ -125,7 +129,11 @@ const AppointmentList = ({ appointments, loading, onAssign, onUpdateStatus }) =>
                                 <td className="px-6 py-4 align-top">
                                     <div className="flex flex-col gap-1.5 items-start">
                                         {getStatusBadge(appt.status)}
-                                        
+                                        {appt.cancellationRequested && appt.status !== 'CANCELLED' && (
+                                            <span className="animate-pulse text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-200">
+                                                ! KHÁCH YÊU CẦU HỦY
+                                            </span>
+                                        )}
                                         <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
                                             appt.paymentStatus === 'PAID' 
                                                 ? 'bg-green-50 text-green-700' 
@@ -139,33 +147,66 @@ const AppointmentList = ({ appointments, loading, onAssign, onUpdateStatus }) =>
                                 {/* 6. Hành động */}
                                 <td className="px-6 py-4 align-top text-center">
                                     <div className="flex flex-col gap-2 items-center">
-                                        {/* Nút Phân công */}
-                                        {['PENDING', 'CONFIRMED'].includes(appt.status) && (
+                                        {/* CASE 1: Nếu khách yêu cầu hủy -> Chỉ hiện nút Duyệt/Từ chối để Admin xử lý trước */}
+                                        {appt.status === 'CANCEL_REQUESTED' ? (
+                                        <div className="flex flex-col gap-1.5 w-full">
+                                            <p className="text-[10px] text-orange-600 font-bold mb-1 uppercase">Xét duyệt hủy</p>
                                             <button 
-                                                onClick={() => onAssign(appt)}
-                                                className="w-full px-3 py-1.5 text-xs font-medium text-white bg-cyan-600 rounded-md hover:bg-cyan-700 shadow-sm hover:shadow transition-all"
+                                                onClick={() => onReviewCancel(appt.id, true)}
+                                                className="w-full px-2 py-1.5 text-[11px] font-bold text-white bg-red-600 rounded hover:bg-red-700 shadow-sm flex items-center justify-center gap-1"
                                             >
-                                                Phân công
+                                                <CheckCircle size={12}/> Chấp nhận Hủy
                                             </button>
-                                        )}
+                                            <button 
+                                                onClick={() => onReviewCancel(appt.id, false)}
+                                                className="w-full px-2 py-1.5 text-[11px] font-bold text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 shadow-sm"
+                                            >
+                                                Từ chối yêu cầu
+                                            </button>
+                                        </div>
+                                        ) : (
+                                            /* CASE 2: Logic bình thường (Không có yêu cầu hủy) */
+                                            <>
+                                                {/* Nút Phân công */}
+                                                {['PENDING', 'CONFIRMED'].includes(appt.status) && (
+                                                    <button 
+                                                        onClick={() => onAssign(appt)}
+                                                        className="w-full px-3 py-1.5 text-xs font-medium text-white bg-cyan-600 rounded-md hover:bg-cyan-700 shadow-sm transition-all"
+                                                    >
+                                                        Phân công
+                                                    </button>
+                                                )}
 
-                                        {/* Các nút chuyển trạng thái */}
-                                        {appt.status === 'CONFIRMED' && (
-                                            <button 
-                                                onClick={() => onUpdateStatus(appt.id, 'IN_PROCESS')}
-                                                className="w-full px-3 py-1.5 text-xs font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 shadow-sm hover:shadow transition-all"
-                                            >
-                                                Bắt đầu làm
-                                            </button>
-                                        )}
+                                                {/* Nút Bắt đầu làm */}
+                                                {appt.status === 'CONFIRMED' && (
+                                                    <button 
+                                                        onClick={() => onUpdateStatus(appt.id, 'IN_PROCESS')}
+                                                        className="w-full px-3 py-1.5 text-xs font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 shadow-sm transition-all"
+                                                    >
+                                                        Bắt đầu làm
+                                                    </button>
+                                                )}
 
-                                        {appt.status === 'IN_PROCESS' && (
-                                            <button 
-                                                onClick={() => onUpdateStatus(appt.id, 'COMPLETED')}
-                                                className="w-full px-3 py-1.5 text-xs font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700 shadow-sm hover:shadow transition-all"
-                                            >
-                                                Hoàn thành
-                                            </button>
+                                                {/* Nút Hoàn thành */}
+                                                {appt.status === 'IN_PROCESS' && (
+                                                    <button 
+                                                        onClick={() => onUpdateStatus(appt.id, 'COMPLETED')}
+                                                        className="w-full px-3 py-1.5 text-xs font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700 shadow-sm transition-all"
+                                                    >
+                                                        Hoàn thành
+                                                    </button>
+                                                )}
+
+                                                {/* Nút Admin chủ động hủy */}
+                                                {appt.status !== 'COMPLETED' && appt.status !== 'CANCELLED' && (
+                                                    <button 
+                                                        onClick={() => onCancel(appt.id)}
+                                                        className="w-full px-3 py-1.5 text-xs font-medium text-red-600 bg-white border border-red-200 rounded-md hover:bg-red-50 transition-all flex items-center justify-center gap-1"
+                                                    >
+                                                        <XCircle size={12} /> Hủy lịch
+                                                    </button>
+                                                )}
+                                            </>
                                         )}
                                     </div>
                                 </td>

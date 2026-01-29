@@ -56,7 +56,7 @@ const AssignEmployeeModal = ({ isOpen, onClose, appointment, onSuccess }) => {
             });
             onSuccess(); // Đóng modal & reload list
         } catch (error) {
-            Swal.fire('Lỗi', error.response?.data?.message || 'Lỗi phân công', 'error');
+            Swal.fire('Lỗi', error.response?.data?.message || 'Nhân viên bị trùng lịch', 'error');
         } finally {
             setLoading(false);
         }

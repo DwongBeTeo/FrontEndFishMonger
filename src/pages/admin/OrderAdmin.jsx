@@ -102,61 +102,48 @@ const OrderAdmin = () => {
     // --- HÀM 2: DUYỆT YÊU CẦU HỦY ---
     const handleReviewCancel = async (orderId, approve) => {
         let reason = "";
-        // TRƯỜNG HỢP 1: TỪ CHỐI HỦY (Cần nhập lý do)
         if (!approve) {
             const { value: inputReason, isDismissed } = await Swal.fire({
                 title: 'Từ chối hủy đơn?',
-                input: 'textarea', // Thay thế prompt bằng input textarea đẹp hơn
+                input: 'textarea',
                 inputLabel: 'Vui lòng nhập lý do từ chối',
                 inputPlaceholder: 'Nhập lý do tại đây...',
-                inputAttributes: {
-                    'aria-label': 'Nhập lý do từ chối'
-                },
                 showCancelButton: true,
                 confirmButtonText: 'Gửi từ chối',
                 cancelButtonText: 'Hủy bỏ',
                 confirmButtonColor: '#d33',
-                inputValidator: (value) => {
-                    if (!value) {
-                        return 'Bạn cần viết lý do!';
-                    }
-                }
+                inputValidator: (value) => { if (!value) return 'Bạn cần viết lý do!' }
             });
-
-            if (isDismissed) return; // Nếu user bấm nút Hủy hoặc click ra ngoài
+            if (isDismissed) return;
             reason = inputReason;
-        } 
-        // TRƯỜNG HỢP 2: ĐỒNG Ý HỦY (Chỉ cần confirm)
-        else {
+        } else {
             const result = await Swal.fire({
                 title: 'Xác nhận hủy đơn?',
                 text: "Bạn có chắc chắn muốn chấp thuận yêu cầu hủy đơn này?",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
                 confirmButtonText: 'Đồng ý hủy',
                 cancelButtonText: 'Suy nghĩ lại'
             });
-
             if (!result.isConfirmed) return;
         }
+
         try {
-            await axiosConfig.put(`/admin/order/${orderId}/review-cancel`, null, {
-                params: { 
-                    approve: approve,
-                    reason: reason 
-                }
+            // 1. Gọi API
+            const response = await axiosConfig.put(`/admin/order/${orderId}/review-cancel`, null, {
+                params: { approve, reason }
             });
-            // Thông báo thành công
-            await Swal.fire({
+
+            // 2. Cập nhật state cục bộ thay vì fetchOrders(keyword)
+            const updatedOrder = response.data;
+            setOrders(prevOrders => prevOrders.map(order => 
+                order.id === orderId ? updatedOrder : order
+            ));
+
+            Toast.fire({
                 icon: 'success',
-                title: 'Đã xử lý xong!',
-                text: approve ? 'Đơn hàng đã được hủy.' : 'Đã từ chối yêu cầu hủy.',
-                timer: 2000,
-                showConfirmButton: false
+                title: approve ? 'Đã duyệt hủy đơn hàng' : 'Đã từ chối yêu cầu hủy'
             });
-            fetchOrders(keyword);
         } catch (error) {
             Swal.fire({
                 icon: 'error',

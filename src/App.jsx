@@ -24,6 +24,8 @@ import ServiceListPage from "./pages/user/service/ServiceListPage";
 import ServiceDetailPage from "./pages/user/service/ServiceDetailPage";
 import BookingPage from "./pages/user/service/BookingPage";
 import MyAppointmentsPage from "./pages/user/service/MyAppointmentsPage";
+import AddressBook from "./pages/user/address/AddressBook";
+import Dashboard from "./pages/admin/Dashboard";
 
 const App = () => {
   return (
@@ -51,6 +53,7 @@ const App = () => {
                 <Route path="/employeeAdmin" element={<EmployeePage />} />
                 <Route path="/serviceAdmin" element={<ServiceAdmin />} />
                 <Route path="/appointmentAdmin" element={<AppointmentAdmin />} />
+                <Route path="/dashboard" element={<Dashboard />} />
             </Route>
             
 
@@ -63,6 +66,8 @@ const App = () => {
               
               <Route path="/booking" element={<BookingPage />} />
               <Route path="/my-appointments" element={<MyAppointmentsPage />} />
+
+              <Route path="/my-addresses" element={<AddressBook />} />
             </Route>
             {/* Pages for both USER and ADMIN */}
             <Route element={<ProtectedRoute allowedRoles={['USER', 'ADMIN']} />}>

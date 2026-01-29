@@ -37,6 +37,7 @@ const ReviewStep = ({ orderSuccess, bankInfo }) => {
                     <span className="material-symbols-outlined text-4xl text-green-600">check_circle</span>
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800">Đặt hàng thành công!</h2>
+                <span>Vui lòng đợi 1 chút để tạo mã QR</span>
                 <p className="text-gray-600 mt-1">Mã đơn hàng: <span className="font-bold text-black">#{orderSuccess.id}</span></p>
             </div>
 

@@ -162,6 +162,15 @@ const Signup = () => {
                                 Log In
                             </Link>
                         </p>
+                        <p className="text-sm text-slate-800 text-center mt-6">
+                            Phát triển bởi Trần Đăng Dương-K22CNT2 Khoa Công nghệ Thông tin Đại học Nguyễn trãi(link page cuar ban than)
+                        </p>
+                        <p className="text-sm text-slate-800 text-center mt-6">
+                            Link page cuar truong
+                        </p>
+                        <p className="text-sm text-slate-800 text-center mt-6">
+                            Link page cua khoa
+                        </p>
                     </form>
                 </div>
             </div>
