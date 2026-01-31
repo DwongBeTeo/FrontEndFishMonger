@@ -36,7 +36,7 @@ const AppointmentAdmin = () => {
             console.log("API Response:", res.data); // Debugging
 
             // Adapting to Spring Data REST Page structure
-            const content = res.data.content || [];
+            const content = res.data.content.sort((a, b) => b.id - a.id) || [];
             // Check if totalPages is at root or inside 'page' object
             const total = res.data.totalPages || res.data.page?.totalPages || 0;
 

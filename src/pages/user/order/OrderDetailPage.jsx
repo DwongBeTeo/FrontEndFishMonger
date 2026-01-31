@@ -99,8 +99,28 @@ const OrderDetailPage = () => {
                             ))}
                         </div>
                         <div className="mt-4 pt-4 border-t flex justify-between items-center">
-                            <span className="font-bold text-gray-700">Tổng tiền:</span>
-                            <span className="text-xl font-bold text-red-600">{order.totalAmount.toLocaleString()}đ</span>
+                            <div className="flex justify-between items-center text-sm text-gray-600">
+                                <span>Tạm tính:</span>
+                                <span>{order.totalAmount?.toLocaleString()}đ</span>
+                            </div>
+
+                            {/* Nếu có giảm giá thì hiện dòng này */}
+                            {order.discountAmount > 0 && (
+                                <div className="flex justify-between items-center text-sm text-green-600 font-medium">
+                                    <span className="flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-sm">local_offer</span> 
+                                        Voucher ({order.voucherCode}):
+                                    </span>
+                                    <span>-{order.discountAmount?.toLocaleString()}đ</span>
+                                </div>
+                            )}
+
+                            <div className="flex justify-between items-center text-lg font-bold text-gray-800 border-t border-dashed pt-2 mt-2">
+                                <span>Thành tiền:</span>
+                                <span className="text-red-600">
+                                    {(order.finalAmount ?? order.totalAmount).toLocaleString()}đ
+                                </span>
+                            </div>
                         </div>
                     </div>
 

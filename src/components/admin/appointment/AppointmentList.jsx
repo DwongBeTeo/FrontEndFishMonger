@@ -1,16 +1,17 @@
 import React from 'react';
-import { User, Clock, MapPin, Phone, CalendarCheck, MoreVertical, Hash, XCircle, Mail, CheckCircle } from 'lucide-react';
+import { User, Clock, MapPin, Phone, CalendarCheck, MoreVertical, Hash, XCircle, Mail, CheckCircle, Tag } from 'lucide-react';
 
 const AppointmentList = ({ appointments, loading, onAssign, onUpdateStatus, onCancel, onReviewCancel }) => {
     
-    // Helper hiển thị badge trạng thái
+    // Helper hiển thị badge trạng thái (Giữ nguyên)
     const getStatusBadge = (status) => {
         const styles = {
             PENDING: 'bg-yellow-100 text-yellow-800 border-yellow-200',
             CONFIRMED: 'bg-blue-100 text-blue-800 border-blue-200',
             IN_PROCESS: 'bg-purple-100 text-purple-800 border-purple-200',
             COMPLETED: 'bg-green-100 text-green-800 border-green-200',
-            CANCELLED: 'bg-orange-100 text-orange-800 border-orange-200 animate-pulse',
+            CANCELLED: 'bg-orange-100 text-orange-800 border-orange-200',
+            CANCEL_REQUESTED: 'bg-red-50 text-red-700 border-red-200 animate-pulse', // Highlight request
         };
         const labels = {
             PENDING: 'Chờ xác nhận',
@@ -78,31 +79,53 @@ const AppointmentList = ({ appointments, loading, onAssign, onUpdateStatus, onCa
                                     </div>
                                 </td>
 
-                                {/* 2. Khách hàng (Tên + SĐT + email) */}
+                                {/* 2. Khách hàng */}
                                 <td className="px-6 py-4 align-top">
                                     <div className="flex gap-3">
                                         <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0 mt-0.5">
                                             <User size={16} />
                                         </div>
                                         <div>
-                                            <div className="font-semibold text-gray-900">{appt.username}</div>
+                                            <div className="font-semibold text-gray-900">{appt.userFullName || "Khách vãng lai"}</div>
                                             <div className="flex items-center gap-1 text-gray-500 text-xs mt-1">
                                                 <Phone size={12} /> {appt.phoneNumber}
                                             </div>
-                                            <div className="flex items-center gap-1 text-gray-500 text-xs mt-1">
-                                                <Mail size={12} /> {appt.email}
-                                            </div>
+                                            {appt.email && (
+                                                <div className="flex items-center gap-1 text-gray-500 text-xs mt-1">
+                                                    <Mail size={12} /> {appt.email}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </td>
 
-                                {/* 3. Dịch vụ & Địa chỉ (Gộp lại cho gọn nhưng phân cấp rõ) */}
+                                {/* 3. Dịch vụ & Địa chỉ (CÓ SỬA ĐỔI ĐỂ HIỆN VOUCHER) */}
                                 <td className="px-6 py-4 align-top">
-                                    <div className="mb-2 flex items-center gap-2">
-                                        <div className="font-medium text-cyan-700">
+                                    <div className="mb-2">
+                                        <div className="font-medium text-cyan-700 mb-1">
                                             {appt.serviceTypeName}
                                         </div>
+                                        
+                                        {/* --- HIỂN THỊ GIÁ & VOUCHER --- */}
+                                        <div className="text-xs text-gray-500">
+                                            {appt.discountAmount > 0 ? (
+                                                <div className="flex flex-col gap-1">
+                                                    <div className="flex items-center gap-1">
+                                                        <span className="line-through text-gray-400">{appt.priceAtBooking?.toLocaleString()}đ</span>
+                                                        <span className="font-bold text-red-600 ml-1">{appt.finalPrice?.toLocaleString()}đ</span>
+                                                    </div>
+                                                    {appt.voucherCode && (
+                                                        <span className="flex items-center gap-1 text-[10px] text-green-700 bg-green-50 px-1.5 py-0.5 rounded border border-green-200 w-fit">
+                                                            <Tag size={10} /> Voucher: <b>{appt.voucherCode}</b> (-{appt.discountAmount?.toLocaleString()}đ)
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <span className="font-semibold text-gray-700">{appt.priceAtBooking?.toLocaleString()}đ</span>
+                                            )}
+                                        </div>
                                     </div>
+
                                     <div className="flex items-start gap-1.5 text-gray-600 text-xs leading-relaxed bg-gray-50 p-2 rounded-md border border-gray-100">
                                         <MapPin size={14} className="text-gray-400 shrink-0 mt-0.5" /> 
                                         <span>{appt.address}</span>
@@ -129,11 +152,7 @@ const AppointmentList = ({ appointments, loading, onAssign, onUpdateStatus, onCa
                                 <td className="px-6 py-4 align-top">
                                     <div className="flex flex-col gap-1.5 items-start">
                                         {getStatusBadge(appt.status)}
-                                        {appt.cancellationRequested && appt.status !== 'CANCELLED' && (
-                                            <span className="animate-pulse text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-200">
-                                                ! KHÁCH YÊU CẦU HỦY
-                                            </span>
-                                        )}
+                                        
                                         <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
                                             appt.paymentStatus === 'PAID' 
                                                 ? 'bg-green-50 text-green-700' 
@@ -147,25 +166,25 @@ const AppointmentList = ({ appointments, loading, onAssign, onUpdateStatus, onCa
                                 {/* 6. Hành động */}
                                 <td className="px-6 py-4 align-top text-center">
                                     <div className="flex flex-col gap-2 items-center">
-                                        {/* CASE 1: Nếu khách yêu cầu hủy -> Chỉ hiện nút Duyệt/Từ chối để Admin xử lý trước */}
+                                        
+                                        {/* CASE 1: Xử lý yêu cầu hủy */}
                                         {appt.status === 'CANCEL_REQUESTED' ? (
-                                        <div className="flex flex-col gap-1.5 w-full">
-                                            <p className="text-[10px] text-orange-600 font-bold mb-1 uppercase">Xét duyệt hủy</p>
-                                            <button 
-                                                onClick={() => onReviewCancel(appt.id, true)}
-                                                className="w-full px-2 py-1.5 text-[11px] font-bold text-white bg-red-600 rounded hover:bg-red-700 shadow-sm flex items-center justify-center gap-1"
-                                            >
-                                                <CheckCircle size={12}/> Chấp nhận Hủy
-                                            </button>
-                                            <button 
-                                                onClick={() => onReviewCancel(appt.id, false)}
-                                                className="w-full px-2 py-1.5 text-[11px] font-bold text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 shadow-sm"
-                                            >
-                                                Từ chối yêu cầu
-                                            </button>
-                                        </div>
+                                            <div className="flex flex-col gap-1 w-full">
+                                                <button 
+                                                    onClick={() => onReviewCancel(appt.id, true)}
+                                                    className="w-full px-2 py-1.5 text-[11px] font-bold text-white bg-red-600 rounded hover:bg-red-700 shadow-sm flex items-center justify-center gap-1"
+                                                >
+                                                    <CheckCircle size={12}/> Duyệt Hủy
+                                                </button>
+                                                <button 
+                                                    onClick={() => onReviewCancel(appt.id, false)}
+                                                    className="w-full px-2 py-1.5 text-[11px] font-bold text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 shadow-sm"
+                                                >
+                                                    Từ chối
+                                                </button>
+                                            </div>
                                         ) : (
-                                            /* CASE 2: Logic bình thường (Không có yêu cầu hủy) */
+                                            /* CASE 2: Các nút hành động bình thường */
                                             <>
                                                 {/* Nút Phân công */}
                                                 {['PENDING', 'CONFIRMED'].includes(appt.status) && (
@@ -177,7 +196,7 @@ const AppointmentList = ({ appointments, loading, onAssign, onUpdateStatus, onCa
                                                     </button>
                                                 )}
 
-                                                {/* Nút Bắt đầu làm */}
+                                                {/* Nút Bắt đầu */}
                                                 {appt.status === 'CONFIRMED' && (
                                                     <button 
                                                         onClick={() => onUpdateStatus(appt.id, 'IN_PROCESS')}
@@ -197,7 +216,7 @@ const AppointmentList = ({ appointments, loading, onAssign, onUpdateStatus, onCa
                                                     </button>
                                                 )}
 
-                                                {/* Nút Admin chủ động hủy */}
+                                                {/* Nút Hủy (Admin chủ động) */}
                                                 {appt.status !== 'COMPLETED' && appt.status !== 'CANCELLED' && (
                                                     <button 
                                                         onClick={() => onCancel(appt.id)}

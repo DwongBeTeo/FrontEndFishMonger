@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Upload, X, Loader2, Image as ImageIcon } from 'lucide-react';
-import uploadImage from '../../util/uploadImage'; // Import hàm util vừa sửa
+import uploadImage from '../../util/uploadImage';
 import toast from 'react-hot-toast';
 
+// file này để upload ảnh lên Cloudinary và trả về URL ảnh
 const ImageUploader = ({ value, onChange, label = "Hình ảnh" }) => {
     const [uploading, setUploading] = useState(false);
 

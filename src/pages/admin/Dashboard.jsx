@@ -5,7 +5,7 @@ import {
 } from 'recharts';
 import { 
     DollarSign, ShoppingBag, Calendar, Users, TrendingUp, 
-    ArrowUp, ArrowDown, Package, Clock, CheckCircle, XCircle 
+    ArrowUp, ArrowDown, Package, Clock, CheckCircle, XCircle, Search, Tag 
 } from 'lucide-react';
 import axiosConfig from '../../util/axiosConfig';
 
@@ -13,7 +13,12 @@ const Dashboard = () => {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Fetch Data
+    // --- STATE FOR VOUCHER STATS ---
+    const [voucherCode, setVoucherCode] = useState('');
+    const [voucherStats, setVoucherStats] = useState(null);
+    const [voucherLoading, setVoucherLoading] = useState(false);
+
+    // Fetch General Stats
     useEffect(() => {
         const fetchStats = async () => {
             try {
@@ -28,6 +33,23 @@ const Dashboard = () => {
         fetchStats();
     }, []);
 
+    // --- FUNCTION TO FETCH VOUCHER STATS ---
+    const handleCheckVoucher = async () => {
+        if (!voucherCode.trim()) return;
+        setVoucherLoading(true);
+        setVoucherStats(null); // Reset previous result
+        try {
+            // Call API: GET /admin/dashboard/{code}/stats
+            const res = await axiosConfig.get(`/admin/dashboard/${voucherCode}/stats`);
+            setVoucherStats(res.data);
+        } catch (error) {
+            console.error("Lỗi tra cứu voucher:", error);
+            // Optional: Show error toast/alert here
+        } finally {
+            setVoucherLoading(false);
+        }
+    };
+
     // --- HELPERS ---
     const formatCurrency = (value) => 
         new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
@@ -37,12 +59,11 @@ const Dashboard = () => {
         return `${date.getDate()}/${date.getMonth() + 1}`;
     };
 
-    // Chuẩn bị dữ liệu cho Pie Chart (Map từ Object sang Array)
     const pieData = stats?.orderStatusCounts ? [
-        { name: 'Hoàn thành', value: stats.orderStatusCounts['COMPLETED'] || 0, color: '#10b981' }, // Green
-        { name: 'Chờ xử lý', value: stats.orderStatusCounts['PENDING'] || 0, color: '#f59e0b' },   // Amber
-        { name: 'Đã hủy', value: stats.orderStatusCounts['CANCELLED'] || 0, color: '#ef4444' },    // Red
-        { name: 'Giao hàng', value: stats.orderStatusCounts['SHIPPING'] || 0, color: '#3b82f6' },  // Blue
+        { name: 'Hoàn thành', value: stats.orderStatusCounts['COMPLETED'] || 0, color: '#10b981' },
+        { name: 'Chờ xử lý', value: stats.orderStatusCounts['PENDING'] || 0, color: '#f59e0b' },
+        { name: 'Đã hủy', value: stats.orderStatusCounts['CANCELLED'] || 0, color: '#ef4444' },
+        { name: 'Giao hàng', value: stats.orderStatusCounts['SHIPPING'] || 0, color: '#3b82f6' },
     ].filter(item => item.value > 0) : [];
 
     // --- RENDER ---
@@ -61,45 +82,20 @@ const Dashboard = () => {
                 <p className="text-gray-500 text-sm mt-1">Cập nhật tình hình kinh doanh mới nhất</p>
             </div>
 
-            {/* --- PHẦN 1: STAT CARDS (4 Ô) --- */}
+            {/* --- PHẦN 1: STAT CARDS --- */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <StatCard 
-                    title="Tổng Doanh Thu" 
-                    value={formatCurrency(stats.totalRevenueThisMonth)} 
-                    icon={DollarSign} 
-                    color="bg-emerald-500"
-                    growth={stats.growthRate} // Hiển thị % tăng trưởng
-                    subText="So với tháng trước"
-                />
-                <StatCard 
-                    title="Đơn hàng mới" 
-                    value={stats.totalOrdersThisMonth} 
-                    icon={ShoppingBag} 
-                    color="bg-blue-500"
-                />
-                <StatCard 
-                    title="Lịch hẹn dịch vụ" 
-                    value={stats.totalAppointmentsThisMonth} 
-                    icon={Calendar} 
-                    color="bg-purple-500"
-                />
-                <StatCard 
-                    title="Tổng Khách hàng" 
-                    value={stats.totalCustomers} 
-                    icon={Users} 
-                    color="bg-orange-500"
-                />
+                <StatCard title="Tổng Doanh Thu" value={formatCurrency(stats.totalRevenueThisMonth)} icon={DollarSign} color="bg-emerald-500" growth={stats.growthRate} subText="So với tháng trước" />
+                <StatCard title="Đơn hàng mới" value={stats.totalOrdersThisMonth} icon={ShoppingBag} color="bg-blue-500" />
+                <StatCard title="Lịch hẹn dịch vụ" value={stats.totalAppointmentsThisMonth} icon={Calendar} color="bg-purple-500" />
+                <StatCard title="Tổng Khách hàng" value={stats.totalCustomers} icon={Users} color="bg-orange-500" />
             </div>
 
             {/* --- PHẦN 2: CHARTS SECTION --- */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                
-                {/* 2.1 Area Chart: Doanh thu (Chiếm 2/3) */}
                 <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                            <TrendingUp size={20} className="text-cyan-600"/>
-                            Biểu đồ doanh thu
+                            <TrendingUp size={20} className="text-cyan-600"/> Biểu đồ doanh thu
                         </h2>
                     </div>
                     <div className="h-[350px]">
@@ -114,36 +110,22 @@ const Dashboard = () => {
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                                 <XAxis dataKey="date" tickFormatter={formatDate} axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} dy={10} />
                                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} tickFormatter={(val) => `${val/1000}k`} />
-                                <Tooltip 
-                                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                    formatter={(value) => [formatCurrency(value), "Doanh thu"]}
-                                    labelFormatter={(label) => `Ngày: ${formatDate(label)}`}
-                                />
+                                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} formatter={(value) => [formatCurrency(value), "Doanh thu"]} labelFormatter={(label) => `Ngày: ${formatDate(label)}`} />
                                 <Area type="monotone" dataKey="revenue" stroke="#0891b2" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
 
-                {/* 2.2 Pie Chart: Trạng thái đơn hàng (Chiếm 1/3) */}
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                     <h2 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
-                        <Package size={20} className="text-cyan-600"/>
-                        Trạng thái đơn hàng
+                        <Package size={20} className="text-cyan-600"/> Trạng thái đơn hàng
                     </h2>
                     <div className="h-[350px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
-                                <Pie
-                                    data={pieData}
-                                    cx="50%" cy="50%"
-                                    innerRadius={60} outerRadius={80}
-                                    paddingAngle={5}
-                                    dataKey="value"
-                                >
-                                    {pieData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} />
-                                    ))}
+                                <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                                    {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
                                 </Pie>
                                 <Tooltip formatter={(value) => [value, "Đơn hàng"]} />
                                 <Legend verticalAlign="bottom" height={36}/>
@@ -153,9 +135,59 @@ const Dashboard = () => {
                 </div>
             </div>
 
+            {/* --- NEW SECTION: VOUCHER CHECKER --- */}
+            <div className="mb-8 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <Tag size={20} className="text-cyan-600"/> Tra cứu hiệu quả Voucher
+                </h2>
+                
+                <div className="flex gap-4 mb-6 max-w-md">
+                    <div className="relative flex-1">
+                        <input 
+                            type="text" 
+                            placeholder="Nhập mã voucher (VD: SALE50)" 
+                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none uppercase"
+                            value={voucherCode}
+                            onChange={(e) => setVoucherCode(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleCheckVoucher()}
+                        />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    </div>
+                    <button 
+                        onClick={handleCheckVoucher}
+                        disabled={voucherLoading || !voucherCode}
+                        className="bg-cyan-600 text-white px-6 py-2 rounded-lg hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
+                    >
+                        {voucherLoading ? 'Đang tra cứu...' : 'Tra cứu'}
+                    </button>
+                </div>
+
+                {/* Display Voucher Stats Result */}
+                {voucherStats && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in-up">
+                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <p className="text-gray-500 text-sm mb-1">Số lượt sử dụng</p>
+                            <p className="text-2xl font-bold text-gray-800">{voucherStats.totalUsed}</p>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <p className="text-gray-500 text-sm mb-1">Doanh thu mang lại</p>
+                            <p className="text-2xl font-bold text-emerald-600">{formatCurrency(voucherStats.totalRevenue)}</p>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <p className="text-gray-500 text-sm mb-1">Tổng tiền đã giảm</p>
+                            <p className="text-2xl font-bold text-orange-600">{formatCurrency(voucherStats.totalDiscount)}</p>
+                        </div>
+                    </div>
+                )}
+                
+                {/* Empty State / Not Found (Optional check) */}
+                {voucherStats && voucherStats.totalUsed === 0 && (
+                    <p className="text-sm text-gray-500 italic mt-2">Mã voucher này chưa được sử dụng lần nào hoặc không tồn tại.</p>
+                )}
+            </div>
+
             {/* --- PHẦN 3: LISTS SECTION (Top Products & Recent Orders) --- */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                
                 {/* 3.1 Top Products */}
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                     <h2 className="text-lg font-bold text-gray-800 mb-4">Top sản phẩm bán chạy</h2>
@@ -164,11 +196,7 @@ const Dashboard = () => {
                             <div key={index} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors">
                                 <div className="flex items-center gap-3">
                                     <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
-                                        {product.imageUrl ? (
-                                            <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <Package className="w-6 h-6 m-auto text-gray-400 mt-3" />
-                                        )}
+                                        {product.imageUrl ? <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" /> : <Package className="w-6 h-6 m-auto text-gray-400 mt-3" />}
                                     </div>
                                     <div>
                                         <p className="text-sm font-semibold text-gray-800 line-clamp-1">{product.name}</p>
@@ -178,9 +206,7 @@ const Dashboard = () => {
                                 <span className="text-sm font-medium text-gray-600">{formatCurrency(product.totalRevenue)}</span>
                             </div>
                         ))}
-                        {(!stats.topProducts || stats.topProducts.length === 0) && (
-                            <p className="text-center text-gray-400 text-sm py-4">Chưa có dữ liệu bán hàng.</p>
-                        )}
+                        {(!stats.topProducts || stats.topProducts.length === 0) && <p className="text-center text-gray-400 text-sm py-4">Chưa có dữ liệu bán hàng.</p>}
                     </div>
                 </div>
 
@@ -203,16 +229,12 @@ const Dashboard = () => {
                                         <td className="px-4 py-3 font-medium text-gray-900">#{order.id}</td>
                                         <td className="px-4 py-3 text-gray-600">{order.fullName || order.userFullName || "Khách lẻ"}</td>
                                         <td className="px-4 py-3 font-medium">{formatCurrency(order.totalAmount)}</td>
-                                        <td className="px-4 py-3">
-                                            <StatusBadge status={order.status} />
-                                        </td>
+                                        <td className="px-4 py-3"><StatusBadge status={order.status} /></td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
-                        {(!stats.recentOrders || stats.recentOrders.length === 0) && (
-                            <p className="text-center text-gray-400 text-sm py-4">Chưa có đơn hàng nào.</p>
-                        )}
+                        {(!stats.recentOrders || stats.recentOrders.length === 0) && <p className="text-center text-gray-400 text-sm py-4">Chưa có đơn hàng nào.</p>}
                     </div>
                 </div>
             </div>
@@ -220,9 +242,7 @@ const Dashboard = () => {
     );
 };
 
-// --- SUB COMPONENTS ---
-
-// 1. Thẻ thống kê (Có hỗ trợ hiển thị Growth)
+// ... Sub-components (StatCard, StatusBadge) remain exactly the same as your provided code ...
 const StatCard = ({ title, value, icon: Icon, color, growth, subText }) => {
     return (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
@@ -246,7 +266,6 @@ const StatCard = ({ title, value, icon: Icon, color, growth, subText }) => {
     );
 };
 
-// 2. Badge trạng thái đơn hàng
 const StatusBadge = ({ status }) => {
     const styles = {
         PENDING:    { bg: 'bg-yellow-100', text: 'text-yellow-700', icon: Clock, label: 'Chờ xử lý' },

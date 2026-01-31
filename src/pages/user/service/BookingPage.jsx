@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import { Calendar, Clock, Info, FileText } from 'lucide-react';
+import { Calendar, Clock, Info, FileText, Home, ChevronRight } from 'lucide-react';
 import axiosConfig from '../../../util/axiosConfig';
 import AddressSelector from '../../../components/common/AddressSelector';
 import Input from '../../../components/common/Input';
+import VoucherSelector from '../../../components/user/voucher/VoucherSelector';
 
 const BookingPage = () => {
     const [searchParams] = useSearchParams();
@@ -22,7 +23,11 @@ const BookingPage = () => {
     });
 
     const [selectedAddress, setSelectedAddress] = useState(null); 
-    const [userProfile, setUserProfile] = useState(null); 
+    const [userProfile, setUserProfile] = useState(null);
+
+    // state voucher
+    const [appliedVoucher, setAppliedVoucher] = useState(null);
+    const [finalPrice, setFinalPrice] = useState(0);
 
     // 1. Load Service Data
     useEffect(() => {
@@ -46,12 +51,31 @@ const BookingPage = () => {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const res = await axiosConfig.get('/users/my-profile'); 
+                const res = await axiosConfig.get('/profile'); 
                 setUserProfile(res.data);
             } catch (error) {}
         };
         fetchProfile();
     }, []);
+
+    // --- 3. LOGIC TÍNH GIÁ KHI CÓ VOUCHER ---
+    useEffect(() => {
+        if (service) {
+            const originalPrice = service.price;
+            if (appliedVoucher) {
+                const discount = appliedVoucher.discountAmount || 0;
+                // Đảm bảo không âm
+                setFinalPrice(Math.max(0, originalPrice - discount));
+            } else {
+                setFinalPrice(originalPrice);
+            }
+        }
+    }, [appliedVoucher, service]);
+
+    // Callback khi chọn voucher
+    const handleApplyVoucher = (voucherData) => {
+        setAppliedVoucher(voucherData);
+    };
 
     // --- HELPER FUNCTION TO FORMAT DATE ---
     const formatDateForBackend = (dateString) => {
@@ -61,7 +85,7 @@ const BookingPage = () => {
         return `${day}-${month}-${year}`;
     };
 
-    // 3. Handle Submit
+    // 4. Handle Submit
     const handleSubmit = async (e) => {
         e.preventDefault();
         
@@ -87,7 +111,8 @@ const BookingPage = () => {
                 addressId: selectedAddress.id,
                 address: selectedAddress.address,
                 phoneNumber: selectedAddress.phoneNumber,
-                note: formData.note
+                note: formData.note,
+                voucherCode: appliedVoucher ? appliedVoucher.code : null
             };
 
             console.log("Sending Payload:", payload); // Debugging
@@ -116,28 +141,64 @@ const BookingPage = () => {
     return (
         <div className="bg-gray-50 min-h-screen py-10">
             <div className="container mx-auto px-4 max-w-4xl">
+                {/* Breadcrumb (Đường dẫn) */}
+                <nav className="flex items-center text-sm text-gray-500 mb-6">
+                    <Link to="/" className="hover:text-blue-600 flex items-center">
+                        <Home size={16} className="mr-1"/> Trang chủ
+                    </Link>
+                    <ChevronRight size={16} className="mx-2" />
+                    <span className="hover:text-blue-600 cursor-pointer">
+                        {service.categoryName || 'Sản phẩm'}
+                    </span>
+                    <ChevronRight size={16} className="mx-2" />
+                    <span className="text-gray-800 font-medium truncate max-w-[200px]">{service.name}</span>
+                </nav>
+
                 <h1 className="text-2xl font-bold text-center text-gray-800 mb-8">Xác nhận Đặt lịch</h1>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {/* Left Column: Service Info */}
-                    <div className="md:col-span-1 bg-white p-6 rounded-xl shadow-sm h-fit border border-gray-100">
-                        <h3 className="font-bold text-gray-700 mb-4 border-b pb-2 flex items-center gap-2">
-                            <Info size={18} className="text-cyan-600" />
-                            Dịch vụ đã chọn
-                        </h3>
-                        <img src={service.imageUrl || 'https://via.placeholder.com/300'} alt="" className="w-full h-32 object-cover rounded-lg mb-4" />
-                        <h4 className="font-bold text-cyan-700 text-lg">{service.name}</h4>
-                        <div className="space-y-3 mt-4 text-sm text-gray-600">
-                            <div className="flex justify-between">
-                                <span className="flex gap-2 items-center"><Clock size={14}/> Thời gian:</span>
-                                <span className="font-medium">{service.estimatedDuration} phút</span>
+                    <div className="md:col-span-1 h-fit space-y-4">
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                            <h3 className="font-bold text-gray-700 mb-4 border-b pb-2 flex items-center gap-2">
+                                <Info size={18} className="text-cyan-600" />
+                                Dịch vụ đã chọn
+                            </h3>
+                            <img src={service.imageUrl || 'https://via.placeholder.com/300'} alt="" className="w-full h-32 object-cover rounded-lg mb-4" />
+                            <h4 className="font-bold text-cyan-700 text-lg">{service.name}</h4>
+                            <div className="space-y-3 mt-4 text-sm text-gray-600">
+                                <div className="flex justify-between">
+                                    <span className="flex gap-2 items-center"><Clock size={14}/> Thời gian:</span>
+                                    <span className="font-medium">{service.estimatedDuration} phút</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span>Đơn giá:</span>
+                                    <span className="font-bold text-gray-800">
+                                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(service.price)}
+                                    </span>
+                                </div>
+                                {/* Hiển thị giảm giá */}
+                                {appliedVoucher && (
+                                    <div className="flex justify-between text-green-600 font-medium">
+                                        <span>Giảm giá:</span>
+                                        <span>-{new Intl.NumberFormat('vi-VN').format(appliedVoucher.discountAmount)}đ</span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between pt-2 border-t border-dashed border-gray-200">
+                                    <span className="font-bold text-lg text-gray-800">Thành tiền:</span>
+                                    <span className="font-bold text-xl text-cyan-600">
+                                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(finalPrice)}
+                                    </span>
+                                </div>
                             </div>
-                            <div className="flex justify-between">
-                                <span>Đơn giá:</span>
-                                <span className="font-bold text-cyan-600">
-                                    {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(service.price)}
-                                </span>
-                            </div>
+                        </div>
+
+                        {/* --- [MỚI] VOUCHER SELECTOR --- */}
+                        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                            <VoucherSelector 
+                                totalAmount={service.price} 
+                                onApplyVoucher={handleApplyVoucher} 
+                            />
                         </div>
                     </div>
 

@@ -11,8 +11,9 @@ const MyOrdersPage = () => {
     // Hàm gọi API lấy danh sách đơn hàng của user
     const fetchOrders = async () => {
         try {
-            const response = await axiosConfig.get('/order'); 
-            setOrders(response.data);
+            const response = await axiosConfig.get('/order');
+            const sortedOrders = [...response.data].sort((a, b) => b.id - a.id);
+            setOrders(sortedOrders);
         } catch (error) {
             console.error("Lỗi tải đơn hàng:", error);
         } finally {
@@ -124,7 +125,26 @@ const MyOrdersPage = () => {
                                 </div>
                                 <div className="text-right">
                                     {getStatusBadge(order.status)}
-                                    <p className="text-red-500 font-bold mt-2">{order.totalAmount.toLocaleString()}đ</p>
+                                    <div className="mt-2 flex flex-col items-end">
+                                    {/* Nếu có giảm giá thì hiện giá gốc bị gạch ngang */}
+                                    {order.discountAmount > 0 && (
+                                        <span className="text-xs text-gray-400 line-through mr-1">
+                                            {order.totalAmount?.toLocaleString()}đ
+                                        </span>
+                                    )}
+                                    
+                                    {/* Luôn hiện giá Final */}
+                                    <span className="text-red-500 font-bold text-lg">
+                                        {(order.finalAmount ?? order.totalAmount).toLocaleString()}đ
+                                    </span>
+
+                                    {/* Badge nhỏ báo hiệu voucher */}
+                                    {order.voucherCode && (
+                                        <span className="text-[10px] bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded mt-1">
+                                            Voucher: {order.voucherCode}
+                                        </span>
+                                    )}
+                                </div>
                                 </div>
                             </div>
 

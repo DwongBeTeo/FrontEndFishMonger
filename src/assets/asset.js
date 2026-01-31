@@ -3,7 +3,7 @@ import login_bg from './images/login-bg.jpg';
 import slider1 from './images/slider1.jpg';
 import slider2 from './images/slider2.jpg';
 import slider3 from './images/slider3.jpg';
-import { Calendar, Fish, Home, IdCardLanyard, List, ListOrdered, ShoppingCart, Toolbox } from 'lucide-react';
+import { Calendar, Fish, Home, IdCardLanyard, List, ListOrdered, ShoppingCart, Ticket, Toolbox } from 'lucide-react';
 
 export const assets = {
     logo,
@@ -90,5 +90,10 @@ export const SIDE_BAR_ADMIN = [
         icon: Calendar,
         path: '/appointmentAdmin',
     },
-    
+    {
+        id: '08',
+        label: 'Voucher',
+        icon: Ticket,
+        path: '/voucherAdmin',
+    }
 ]

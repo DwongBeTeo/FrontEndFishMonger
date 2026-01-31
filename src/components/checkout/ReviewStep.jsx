@@ -26,9 +26,10 @@ const ReviewStep = ({ orderSuccess, bankInfo }) => {
     }, [orderSuccess, bankInfo]);
 
     if (!orderSuccess) return null;
+    const amountToPay = orderSuccess.finalAmount ?? orderSuccess.totalAmount;
 
     const transferContent = `DH${orderSuccess.id}`; 
-    const qrUrl = `https://img.vietqr.io/image/${bankInfo.BANK_ID}-${bankInfo.ACCOUNT_NO}-${bankInfo.TEMPLATE}.png?amount=${orderSuccess.totalAmount}&addInfo=${transferContent}&accountName=${encodeURIComponent(bankInfo.ACCOUNT_NAME)}`;
+    const qrUrl = `https://img.vietqr.io/image/${bankInfo.BANK_ID}-${bankInfo.ACCOUNT_NO}-${bankInfo.TEMPLATE}.png?amount=${orderSuccess.finalAmount}&addInfo=${transferContent}&accountName=${encodeURIComponent(bankInfo.ACCOUNT_NAME)}`;
 
     return (
         <div className="text-center animate-fade-in-up">
@@ -50,7 +51,19 @@ const ReviewStep = ({ orderSuccess, bankInfo }) => {
                         <p>Ngân hàng: <strong>{bankInfo.BANK_ID}</strong></p>
                         <p>Số TK: <strong>{bankInfo.ACCOUNT_NO}</strong></p>
                         <p>Chủ TK: <strong>{bankInfo.ACCOUNT_NAME}</strong></p>
-                        <p>Số tiền: <strong className="text-red-500">{orderSuccess.totalAmount.toLocaleString()}đ</strong></p>
+                        <p>Số tiền: <strong className="text-red-500">
+                            {/* Display the discounted amount */}
+                            {amountToPay.toLocaleString()}đ
+                        </strong></p>
+                        <p>Nội dung: <strong className="text-blue-600 copy-text">{transferContent}</strong></p>
+                        
+                        {/* Optional: Show original price and discount if applicable */}
+                        {orderSuccess.discountAmount > 0 && (
+                            <p className="text-xs text-gray-500">
+                                (Giá gốc: {orderSuccess.totalAmount.toLocaleString()}đ - Giảm: {orderSuccess.discountAmount.toLocaleString()}đ)
+                            </p>
+                        )}
+
                         <p>Nội dung: <strong className="text-blue-600 copy-text">{transferContent}</strong></p>
                     </div>
                 </div>

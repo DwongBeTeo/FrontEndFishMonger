@@ -1,6 +1,7 @@
 import { Trash, Upload, User } from "lucide-react";
 import { useRef, useState } from "react";
 
+// file này để đăng ảnh đại diện người dùng trong ProfileForm.jsx
 const ProfilePhotoSelector = ({ image, setImage }) => {
     const inputRef = useRef(null);
     const [previewUrl, setPreviewUrl] = useState( null);

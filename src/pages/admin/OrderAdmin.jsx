@@ -191,7 +191,7 @@ const OrderAdmin = () => {
                             <th className="px-6 py-3">ID</th>
                             <th className="px-6 py-3">Ngày đặt</th>
                             <th className="px-6 py-3">Khách hàng</th>
-                            <th className="px-6 py-3">Tổng tiền</th>
+                            <th className="px-6 py-3">Tổng Thanh toán</th>
                             <th className="px-6 py-3">Thanh toán</th>
                             <th className="px-6 py-3">Trạng thái</th>
                             <th className="px-6 py-3 text-center">Hành động</th>
@@ -213,8 +213,30 @@ const OrderAdmin = () => {
                                             <span className="text-xs text-gray-400">ID: {order.userId}</span>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 font-bold text-red-600">
-                                        {order.totalAmount.toLocaleString()}đ
+                                    <td className="px-6 py-4">
+                                        <div className="flex flex-col">
+                                            {/* Giá thực thu */}
+                                            <span className="font-bold text-red-600">
+                                                {(order.finalAmount ?? order.totalAmount).toLocaleString()}đ
+                                            </span>
+
+                                            {/* Nếu có giảm giá thì hiện chi tiết nhỏ bên dưới */}
+                                            {order.discountAmount > 0 && (
+                                                <div className="text-xs text-gray-500 mt-1">
+                                                    <span className="line-through mr-1">{order.totalAmount?.toLocaleString()}</span>
+                                                    <span className="text-green-600" title={`Mã: ${order.voucherCode}`}>
+                                                        (-{order.discountAmount?.toLocaleString()})
+                                                    </span>
+                                                </div>
+                                            )}
+                                            
+                                            {/* Hiển thị mã voucher */}
+                                            {order.voucherCode && (
+                                                <span className="inline-block bg-gray-100 text-gray-600 text-[10px] px-1 rounded w-fit mt-1 border">
+                                                    {order.voucherCode}
+                                                </span>
+                                            )}
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex flex-col">

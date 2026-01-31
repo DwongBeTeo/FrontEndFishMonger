@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axiosConfig from '../../../util/axiosConfig';
-import { Calendar, MapPin, Clock, User, Phone, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Calendar, MapPin, Clock, User, Phone, CheckCircle, XCircle, AlertCircle, Tag } from 'lucide-react';
 import Pagination from '../../../components/common/Pagination';
 import Swal from 'sweetalert2';
 
@@ -113,9 +113,29 @@ const MyAppointmentsPage = () => {
                                         <div>
                                             <h3 className="font-bold text-lg text-gray-800">{appt.serviceTypeName}</h3>
                                             <p className="text-sm text-gray-500">Mã đơn: #{appt.id}</p>
-                                            <p className="text-cyan-600 font-bold text-sm mt-1">
-                                                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(appt.priceAtBooking)}
-                                            </p>
+                                            
+                                            {/* --- UPDATED PRICE DISPLAY WITH VOUCHER --- */}
+                                            <div className="mt-1">
+                                                {appt.discountAmount > 0 ? (
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs text-gray-400 line-through">
+                                                            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(appt.priceAtBooking)}
+                                                        </span>
+                                                        <span className="text-cyan-600 font-bold text-lg">
+                                                            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(appt.finalPrice)}
+                                                        </span>
+                                                        {appt.voucherCode && (
+                                                            <span className="inline-flex items-center gap-1 text-[10px] text-green-600 font-medium bg-green-50 px-1.5 py-0.5 rounded w-fit mt-0.5">
+                                                                <Tag size={10} /> Voucher: {appt.voucherCode}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-cyan-600 font-bold text-lg">
+                                                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(appt.priceAtBooking)}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                     {renderStatus(appt.status, appt.paymentStatus)}

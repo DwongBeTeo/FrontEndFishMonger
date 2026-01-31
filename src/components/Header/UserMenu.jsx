@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { NavLink } from 'react-router-dom';
-import { User, LogOut, Package } from 'lucide-react';
+import { User, LogOut, Package, Calendar, MapPin } from 'lucide-react';
 import AuthContext from '../../context/AuthContext';
 
 const UserMenu = () => {
@@ -57,7 +57,7 @@ const UserMenu = () => {
                                 </div>
                             </div>
 
-                            {/* --- MỚI: MENU ITEM ĐƠN HÀNG --- */}
+                            {/* MENU ITEM ĐƠN HÀNG */}
                             <div className="py-1 border-b border-gray-100">
                                 <NavLink 
                                     to="/my-orders" 
@@ -69,27 +69,39 @@ const UserMenu = () => {
                                 </NavLink>
                             </div>
 
-                            {/* --- MỚI: MENU Appointment --- */}
+                            {/* MENU Appointment  */}
                             <div className="py-1 border-b border-gray-100">
                                 <NavLink 
                                     to="/my-appointments" 
                                     onClick={() => setShowDropdown(false)}
                                     className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                                 >
-                                    <Package className="w-4 h-4 text-cyan-600" />
+                                    <Calendar className="w-4 h-4 text-cyan-600" />
                                     <span>Lịch hẹn của tôi</span>
                                 </NavLink>
                             </div>
 
-                            {/* --- MỚI: MENU Address --- */}
+                            {/* MENU Address */}
                             <div className="py-1 border-b border-gray-100">
                                 <NavLink 
                                     to="/my-addresses" 
                                     onClick={() => setShowDropdown(false)}
                                     className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                                 >
-                                    <Package className="w-4 h-4 text-cyan-600" />
+                                    <MapPin className="w-4 h-4 text-cyan-600" />
                                     <span>Sổ địa chỉ của tôi</span>
+                                </NavLink>
+                            </div>
+
+                            {/* MENU profile personal */}
+                            <div className="py-1 border-b border-gray-100">
+                                <NavLink 
+                                    to="/my-profile" 
+                                    onClick={() => setShowDropdown(false)}
+                                    className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                                >
+                                    <User className="w-4 h-4 text-cyan-600" />
+                                    <span>Thông tin cá nhân</span>
                                 </NavLink>
                             </div>
 

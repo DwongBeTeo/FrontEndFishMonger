@@ -26,6 +26,9 @@ import BookingPage from "./pages/user/service/BookingPage";
 import MyAppointmentsPage from "./pages/user/service/MyAppointmentsPage";
 import AddressBook from "./pages/user/address/AddressBook";
 import Dashboard from "./pages/admin/Dashboard";
+import VoucherAdmin from "./pages/admin/VoucherAdmin";
+import UserProfilePage from "./pages/user/personal/UserProfilePage";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 
 const App = () => {
   return (
@@ -34,6 +37,7 @@ const App = () => {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/sign-up" element={<Signup />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           {/* Warp all in MainLayout */}
           <Route element={<MainLayout />}>
             <Route path="/" element={<Home />} />
@@ -54,6 +58,7 @@ const App = () => {
                 <Route path="/serviceAdmin" element={<ServiceAdmin />} />
                 <Route path="/appointmentAdmin" element={<AppointmentAdmin />} />
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/voucherAdmin" element={<VoucherAdmin />} />
             </Route>
             
 
@@ -68,6 +73,7 @@ const App = () => {
               <Route path="/my-appointments" element={<MyAppointmentsPage />} />
 
               <Route path="/my-addresses" element={<AddressBook />} />
+              <Route path="/my-profile" element={<UserProfilePage />} />
             </Route>
             {/* Pages for both USER and ADMIN */}
             <Route element={<ProtectedRoute allowedRoles={['USER', 'ADMIN']} />}>

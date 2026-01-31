@@ -72,11 +72,11 @@ const Signup = () => {
 
                 <div className="bg-white bg-opacity-95 backdrop-blur-sm rounded-lg shadow-2xl p-8 max-h-[90vh] overflow-y-auto">
                     <h3 className="text-2xl font-semibold text-black text-center mb-2">
-                        Create an Account
+                        Đăng ký tài khoản của bạn
                     </h3>
                     {/* <p className="text-base text-slate-700 text-center m-8"> */}
                     <p className="text-base md:text-lg text-slate-600 text-center mt-6 mb-8 max-w-md mx-auto leading-relaxed">
-                        Start searching your favourite by joining with us!
+                        Tạo tài khoản mới để trải nghiệm mua sắm tuyệt vời cùng chúng tôi!
                     </p>
 
                     <form onSubmit={handleSubmit} className="space-y-4"> 
@@ -90,9 +90,9 @@ const Signup = () => {
                             <Input
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
-                                label="Full Name"
+                                label="Tên đăng nhập"
                                 type="text"
-                                placeholder="Enter your full name"
+                                placeholder="Tên đăng nhập của bạn"
                             />
 
                             <Input
@@ -107,9 +107,9 @@ const Signup = () => {
                                 <Input
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    label="Password"
+                                    label="Mật khẩu"
                                     type="password"
-                                    placeholder="Enter your password"
+                                    placeholder="Nhập mật khẩu của bạn"
                                 />
                             </div>
 
@@ -149,27 +149,18 @@ const Signup = () => {
                             {isLoading ? (
                                 <>
                                  <LoaderCircle className="animate-spin w-5 h-5"/>
-                                    Signing Up...
+                                    Đang đăng ký...
                                 </>
                             ) : (
-                                'SIGN UP'
+                                'ĐĂNG KÝ'
                             )}
                         </button>
 
                         <p className="text-sm text-slate-800 text-center mt-6">
-                            Already have an account?
-                            <Link to="/login" className="font-medium text-primary hover:underline hover:text-primary-dark transition-colors">
-                                Log In
+                            Đã có tài khoản?{' '}
+                            <Link to="/login" className="font-medium text-primary hover:underline hover:text-cyan-600 transition-colors">
+                                Đăng nhập
                             </Link>
-                        </p>
-                        <p className="text-sm text-slate-800 text-center mt-6">
-                            Phát triển bởi Trần Đăng Dương-K22CNT2 Khoa Công nghệ Thông tin Đại học Nguyễn trãi(link page cuar ban than)
-                        </p>
-                        <p className="text-sm text-slate-800 text-center mt-6">
-                            Link page cuar truong
-                        </p>
-                        <p className="text-sm text-slate-800 text-center mt-6">
-                            Link page cua khoa
                         </p>
                     </form>
                 </div>

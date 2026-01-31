@@ -72,11 +72,11 @@ const Login = () => {
 
                 <div className="bg-white bg-opacity-95 backdrop-blur-sm rounded-lg shadow-2xl p-8 max-h-[90vh] overflow-y-auto">
                     <h3 className="text-2xl font-semibold text-black text-center mb-2">
-                        Login Your Account
+                        Đăng nhập tài khoản của bạn
                     </h3>
                     {/* <p className="text-base text-slate-700 text-center m-8"> */}
                     <p className="text-base md:text-lg text-slate-600 text-center mt-6 mb-8 max-w-md mx-auto leading-relaxed">
-                        Welcome back! Please enter your details.
+                        Chào mừng bạn trở lại! Vui lòng nhập thông tin
                     </p>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
@@ -92,9 +92,9 @@ const Login = () => {
                         <Input
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            label="Password"
+                            label="Mật khẩu"
                             type="password"
-                            placeholder="Enter your password"
+                            placeholder="Nhập mật khẩu của bạn"
                         />
 
                         {error && (
@@ -110,24 +110,27 @@ const Login = () => {
                             {isLoading ? (
                                 <>
                                     <LoaderCircle className="animate-spin w-5 h-5"/>
-                                    Logging in...
+                                    Đang đăng nhập...
                                 </>
                             ): (
-                                "LOGIN"
+                                "Đăng nhập"
                             )}
                         </button>
 
                         <div className="flex items-center justify-between">
                             <p className="text-sm text-slate-800 text-center mt-6">
-                                Don't have an account?{' '}
-                                <Link to="/sign-up" className="font-medium text-primary hover:underline hover:text-primary-dark transition-colors">
-                                    Sign Up
+                                Không có tài khoản?{' '}
+                                <Link to="/sign-up" className="font-medium text-primary hover:underline hover:text-cyan-600 transition-colors">
+                                    Đăng ký tài khoản
                                 </Link>
                             </p>
 
-                            <a className="text-sm text-slate-800 text-center mt-6">
-                                Forgot Password?(Chưa hoàn thành)
-                            </a>
+                            <Link 
+                                to="/forgot-password" 
+                                className="text-sm text-slate-800 text-center mt-6 hover:text-cyan-600 hover:underline transition-colors"
+                            >
+                                Quên mật khẩu?
+                            </Link>
 
                         </div>
                     </form>

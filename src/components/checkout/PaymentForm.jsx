@@ -1,7 +1,7 @@
 // Step2: chọn phương thức thanh toán
 import React from 'react';
 
-const PaymentForm = ({ formData, setFormData, onBack, onPlaceOrder, totalAmount }) => {
+const PaymentForm = ({ formData, setFormData, onBack, onPlaceOrder, totalAmount, hideButtons }) => {
     return (
         <div className="flex flex-col gap-4 animate-fade-in-up">
             <h3 className="text-lg font-semibold">Chọn hình thức thanh toán</h3>
@@ -34,15 +34,17 @@ const PaymentForm = ({ formData, setFormData, onBack, onPlaceOrder, totalAmount 
                 </div>
             </label>
 
-            <div className="flex justify-between mt-6">
-                <button onClick={onBack} className="text-gray-600 hover:underline px-4">Quay lại</button>
-                <button 
-                    onClick={onPlaceOrder} 
-                    className="bg-cyan-600 text-white px-8 py-2 rounded hover:bg-cyan-700 font-bold shadow-md"
-                >
-                    XÁC NHẬN ĐẶT HÀNG ({totalAmount?.toLocaleString()}đ)
-                </button>
-            </div>
+            {!hideButtons &&(
+                <div className="flex justify-between mt-6">
+                    <button onClick={onBack} className="text-gray-600 hover:underline px-4">Quay lại</button>
+                    <button 
+                        onClick={onPlaceOrder} 
+                        className="bg-cyan-600 text-white px-8 py-2 rounded hover:bg-cyan-700 font-bold shadow-md"
+                    >
+                        XÁC NHẬN ĐẶT HÀNG ({totalAmount?.toLocaleString()}đ)
+                    </button>
+                </div>
+            )}
         </div>
     );
 };
