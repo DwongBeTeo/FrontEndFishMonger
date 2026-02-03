@@ -58,7 +58,7 @@ const Signup = () => {
             navigate('/login');
         } catch (error) {
             console.error(error);
-            toast.error("Failed to create account. Please try again.");
+            toast.error("Tạo tài khoản thất bại. Vui lòng thử lại.");
         } finally {
             setIsLoading(false);
         }

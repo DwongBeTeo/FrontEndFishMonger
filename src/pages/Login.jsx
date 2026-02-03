@@ -56,7 +56,7 @@ const Login = () => {
                 setError(error.response.message);
             }else {
                 console.error(error);
-                setError("Invalid email or password. Please try again.");
+                setError("Mật khẩu hoặc Email không khả dụng. Vui lòng thử lại.");
             }
         } finally {
             setIsLoading(false);

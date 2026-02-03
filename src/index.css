@@ -1,6 +1,70 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
+/* Typography */
+/* 1. Xử lý căn lề văn bản (React Quill dùng class ql-align-...) */
+.prose .ql-align-center {
+  text-align: center;
+  display: block; 
+}
+.prose .ql-align-right {
+  text-align: right;
+  display: block;
+}
+.prose .ql-align-justify {
+  text-align: justify;
+  display: block;
+}
+
+/* 2. Căn giữa hình ảnh (Nếu ảnh nằm trong thẻ p có class ql-align-center) */
+.prose .ql-align-center img {
+  margin-left: auto;
+  margin-right: auto;
+  display: block; /* Đảm bảo margin auto hoạt động */
+}
+
+/* 3. Khắc phục lỗi ảnh quá to tràn màn hình */
+.prose img {
+  max-width: 100%;    /* Ảnh không bao giờ rộng hơn khung chứa */
+  height: auto;       /* Giữ tỷ lệ ảnh */
+  border-radius: 8px; /* Bo góc ảnh */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); 
+  display: block;     /* Loại bỏ khoảng trắng dưới ảnh inline */
+  margin: 1.5em auto; /* Căn giữa mặc định và tạo khoảng cách trên dưới */
+}
+
+/* 4. Fix lỗi video iframe (Youtube) */
+.prose iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 8px;
+  margin: 1.5em 0;
+}
+
+/* 5. Đảm bảo text trong prose cũng tự ngắt dòng */
+.prose {
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important; 
+  word-break: normal !important;    
+  white-space: normal !important
+}
+/* QUAN TRỌNG: Ghi đè style inline của các thẻ con bên trong HTML */
+.prose p, 
+.prose span, 
+.prose div, 
+.prose li,
+.prose a {
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  word-break: normal !important; /* Bắt buộc không được bẻ chữ cái */
+}
+
+/* Trường hợp ngoại lệ: Link quá dài thì được phép bẻ để không vỡ layout */
+.prose a {
+  word-break: break-all !important; /* Fallback */
+}
+/* End Typography */
 @layer components {
   .card {
     @apply bg-white rounded-lg p-4 shadow-md;  /* Match card trắng, rounded, padding, shadow nhẹ */
@@ -54,15 +118,6 @@ body{
 }
 
 /* End Custom scrollbar */
-/* Custom tooltip để xem thống kê chi tiết của income đó */
-
-/* .recharts-tooltip-wrapper {
-  opacity: 1 !important;
-  visibility: visible !important;
-  pointer-events: auto !important;
-} */
-
-/* End custom tooltip */
 
 /*SlideShow*/
 .slider {

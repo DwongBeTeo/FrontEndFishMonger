@@ -3,7 +3,7 @@ import login_bg from './images/login-bg.jpg';
 import slider1 from './images/slider1.jpg';
 import slider2 from './images/slider2.jpg';
 import slider3 from './images/slider3.jpg';
-import { Calendar, Fish, Home, IdCardLanyard, List, ListOrdered, ShoppingCart, Ticket, Toolbox } from 'lucide-react';
+import { BluetoothSearching, Calendar, Fish, Home, IdCardLanyard, List, ListOrdered, Newspaper, Notebook, NotebookTabs, ShoppingCart, Ticket, Toolbox, User } from 'lucide-react';
 
 export const assets = {
     logo,
@@ -95,5 +95,23 @@ export const SIDE_BAR_ADMIN = [
         label: 'Voucher',
         icon: Ticket,
         path: '/voucherAdmin',
+    },
+    {
+        id: '09',
+        label: 'Danh Mục Bài Viết',
+        icon: NotebookTabs,
+        path: '/blogCategoryAdmin',
+    },
+    {
+        id: '10',
+        label: 'Bài Viết',
+        icon: Newspaper,
+        path: '/postAdmin',
+    },
+    {
+        id: '11',
+        label: 'Thông tin Cá Nhân',
+        icon: User,
+        path: '/my-profile',
     }
 ]

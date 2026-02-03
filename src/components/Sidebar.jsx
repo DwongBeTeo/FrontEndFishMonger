@@ -40,7 +40,7 @@ const Sidebar = () => { // 2. Bỏ nhận props activeMenu
     const currentUser = user?.role === 'ADMIN' ? SIDE_BAR_ADMIN : SIDE_BAR_USER;
     const heightClass = isAdmin ? "h-screen top-0" : "h-[calc(100vh-61px)] top-[61px]";
     return (
-        <div className={`${heightClass} flex flex-col bg-white border-r border-gray-200/50 p-5 sticky top-[61px] z-20 transition-all duration-300 ease-in-out ${isExpanded ? 'w-64' : 'w-20 px-2'}`}>
+        <div className={`${heightClass} flex flex-col bg-white border-r border-gray-200/50 sticky z-20 transition-all duration-300 ease-in-out ${isExpanded ? 'w-64' : 'w-20 px-2'}`}>
             {/* toggle expand/collapse */}
             {isAdmin && (
                 <button
@@ -69,7 +69,7 @@ const Sidebar = () => { // 2. Bỏ nhận props activeMenu
             </div>
 
             {/* Menu list */}
-                <div className="flex-1 flex flex-col gap-2">
+                <div className={`flex-1 px-3 py-2 space-y-1 scrollbar-hide ${isExpanded ? 'overflow-y-auto' : 'overflow-visible'}`}>
                     {currentUser.map((item, index) => {
                         // 4. LOGIC MỚI: So sánh URL hiện tại với path của item
                         // location.pathname: đường dẫn trên trình duyệt (ví dụ: /product)
@@ -82,7 +82,7 @@ const Sidebar = () => { // 2. Bỏ nhận props activeMenu
                             <button 
                                 key={`menu_${index}`}
                                 onClick={() => navigate(item.path)}
-                                title={!isExpanded ? item.label : ''}
+                                // title={!isExpanded ? item.label : ''}
                                 // 5. Nếu isActive = true thì thêm class màu tím
                                 className={`cursor-pointer w-full flex items-center py-3 rounded-lg transition-all duration-300 relative group
                                 ${isActive ? 'text-white bg-purple-800 shadow-md' : 'text-gray-600 hover:bg-purple-50 hover:text-purple-800'}
@@ -95,8 +95,10 @@ const Sidebar = () => { // 2. Bỏ nhận props activeMenu
                                     </span>
                                     {/* Tooltip chỉ hiện cho Admin khi đóng Sidebar */}
                                     {!isExpanded && isAdmin && (
-                                        <div className="absolute left-full rounded-md px-2 py-1 ml-6 bg-gray-900 text-white text-xs opacity-0 -translate-x-3 transition-all group-hover:opacity-100 group-hover:translate-x-0 invisible group-hover:visible z-50 whitespace-nowrap">
+                                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-2 bg-gray-900 text-white text-xs rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 whitespace-nowrap shadow-lg">
                                             {item.label}
+                                            {/* Mũi tên nhỏ chỉ vào icon */}
+                                            <div className="absolute top-1/2 -left-1 -mt-1 border-4 border-transparent border-r-gray-900"></div>
                                         </div>
                                     )}
                             </button>
@@ -105,17 +107,19 @@ const Sidebar = () => { // 2. Bỏ nhận props activeMenu
                 </div>
             {/* Logout Button */}
             {isAdmin && (
-                 <button onClick={logout}
-                  className={`mt-auto flex items-center gap-4 text-red-600 hover:text-red-800 transition-all duration-300
-                    ${isExpanded ? 'px-0 gap-4 justify-start' : 'px-0 justify-center'}
-                    `}
-                  >
-                     <LogOutIcon className="shrink-0" /> 
-                     <span className={`whitespace-nowrap overflow-hidden transition-all duration-200 ${isExpanded ? 'w-auto opacity-100' : 'opacity-0 w-0'}`}>
-                        Đăng xuất
-                     </span>
-                 </button>
-             )}
+                <div className="p-3 bg-white border-t border-gray-100 mt-auto">
+                    <button onClick={logout}
+                    className={`mt-auto flex items-center gap-4 text-red-600 hover:text-red-800 transition-all duration-300
+                        ${isExpanded ? 'px-0 gap-4 justify-start' : 'px-0 justify-center'}
+                        `}
+                    >
+                        <LogOutIcon className="shrink-0" /> 
+                        <span className={`whitespace-nowrap overflow-hidden transition-all duration-200 ${isExpanded ? 'w-auto opacity-100' : 'opacity-0 w-0'}`}>
+                            Đăng xuất
+                        </span>
+                    </button>
+                </div>     
+            )}
         </div>
     )
 }

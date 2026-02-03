@@ -48,7 +48,15 @@ const UserMenu = () => {
                             <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50">
                                 <div className="flex items-center gap-3">
                                     <div className="flex items-center justify-center w-8 h-8 bg-purple-100 rounded-full">
-                                        <User className="w-4 h-4 text-purple-600" />
+                                        {user.profileImageUrl ? (
+                                            <img 
+                                                src={user.profileImageUrl}
+                                                alt="Avatar"
+                                                className="w-6 h-6 rounded-full object-cover"
+                                            />
+                                        ) : (
+                                            <User className="w-4 h-4 text-purple-600" />
+                                        )}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm font-semibold text-gray-900 truncate">{user.username}</p>

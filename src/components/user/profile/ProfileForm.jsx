@@ -39,7 +39,7 @@ const ProfileForm = ({ initialData, onUpdateSuccess }) => {
         e.preventDefault();
         setLoading(true);
         try {
-            const res = await axiosConfig.put('/users/profile', formData);
+            const res = await axiosConfig.put('/profile', formData);
             
             Swal.fire({
                 icon: 'success',

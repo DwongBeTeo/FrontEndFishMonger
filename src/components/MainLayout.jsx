@@ -8,20 +8,20 @@ const MainLayout = () => {
     const { user } = useContext(AuthContext);
     const isAdmin = user?.role === 'ADMIN';
     return (
-        <div className="flex flex-col min-h-screen">
+        <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
             {/* ------------------------------------------------------ */}
             {/* TRƯỜNG HỢP 1: ADMIN (Layout Dashboard: Trái - Phải)    */}
             {/* ------------------------------------------------------ */}
             {isAdmin ? (
-                <div className="flex">
+                <div className="flex h-screen overflow-hidden">
                     {/* Sidebar nằm bên trái, cố định */}
                     {/* Lưu ý: Bạn cần sửa CSS trong Sidebar một chút để nó full chiều cao nếu không có MenuBar */}
-                    <div className="sticky top-0 h-screen shrink-0">
+                    <div className="z-20 shrink-0">
                          <Sidebar /> 
                     </div>
 
                     {/* Content nằm bên phải */}
-                    <main className="flex-1 p-6 overflow-y-auto">
+                    <main className="flex-1 h-full overflow-y-auto bg-gray-50 relative p-6 md:p-8">
                         <Outlet />
                     </main>
                 </div>

@@ -29,6 +29,10 @@ import Dashboard from "./pages/admin/Dashboard";
 import VoucherAdmin from "./pages/admin/VoucherAdmin";
 import UserProfilePage from "./pages/user/personal/UserProfilePage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import BlogCategoryAdmin from "./pages/admin/blog/BlogCategoryAdmin";
+import PostAdmin from "./pages/admin/blog/PostAdmin";
+import BlogPage from "./pages/user/blog/BlogPage";
+import BlogPostDetail from "./pages/user/blog/BlogPostDetail";
 
 const App = () => {
   return (
@@ -49,6 +53,8 @@ const App = () => {
             <Route path="/products/:slug" element={<ProductDetail />} />
             <Route path="/services" element={<ServiceListPage />} />
             <Route path="/services/:id" element={<ServiceDetailPage />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/blog/:slug" element={<BlogPostDetail />} />
             {/* Pages Admin */}
             <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
                 <Route path="/categoryAdmin" element={<CategoryAdmin />} />
@@ -59,6 +65,8 @@ const App = () => {
                 <Route path="/appointmentAdmin" element={<AppointmentAdmin />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/voucherAdmin" element={<VoucherAdmin />} />
+                <Route path="/blogCategoryAdmin" element={<BlogCategoryAdmin />} />
+                <Route path="/postAdmin" element={<PostAdmin />} />
             </Route>
             
 
@@ -73,10 +81,10 @@ const App = () => {
               <Route path="/my-appointments" element={<MyAppointmentsPage />} />
 
               <Route path="/my-addresses" element={<AddressBook />} />
-              <Route path="/my-profile" element={<UserProfilePage />} />
             </Route>
             {/* Pages for both USER and ADMIN */}
             <Route element={<ProtectedRoute allowedRoles={['USER', 'ADMIN']} />}>
+              <Route path="/my-profile" element={<UserProfilePage />} />
               <Route path="/order/:orderId" element={<OrderDetailPage />} />
             </Route>
           </Route>

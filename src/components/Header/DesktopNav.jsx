@@ -71,7 +71,7 @@ const DesktopNav = () => {
       <NavLink className={getLinkClass} to={`/accessory`}>
         Phụ kiện
       </NavLink>
-      <NavLink className="text-sm font-medium text-gray-500 hover:text-cyan-500 transition-colors" to="#">
+      <NavLink className={getLinkClass} to={`/blog`}>
         Kiến thức
       </NavLink>
       <NavLink className={getLinkClass} to={`/services`}>
