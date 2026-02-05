@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Search, Filter, Calendar } from 'lucide-react';
 import axiosConfig from '../../util/axiosConfig';
 import Swal from 'sweetalert2';
 import Pagination from '../../components/common/Pagination';
 import AppointmentList from '../../components/admin/appointment/AppointmentList';
 import AssignEmployeeModal from '../../components/admin/appointment/AssignEmployeeModal';
+import SocketContext from '../../context/SocketContext';
 
 const AppointmentAdmin = () => {
     const [appointments, setAppointments] = useState([]);
@@ -19,6 +20,38 @@ const AppointmentAdmin = () => {
     const [statusFilter, setStatusFilter] = useState('');
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
+
+    const { lastMessage } = useContext(SocketContext);
+
+    // 🔥 LOGIC REAL-TIME
+    useEffect(() => {
+        if (lastMessage && lastMessage.type === 'ADMIN_APPOINTMENT_UPDATE') {
+            const updatedAppt = lastMessage.data;
+            console.log("⚡ Admin nhận lịch hẹn mới:", updatedAppt);
+
+            setAppointments(prevList => {
+                // Kiểm tra trùng lặp
+                const isExist = prevList.find(a => a.id === updatedAppt.id);
+
+                if (isExist) {
+                    // Update: Ví dụ khách vừa yêu cầu hủy, trạng thái đổi thành CANCEL_REQUESTED
+                    return prevList.map(a => a.id === updatedAppt.id ? updatedAppt : a);
+                } else {
+                    // Create: Khách mới đặt -> Thêm lên đầu
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'info',
+                        title: `📅 Lịch hẹn mới #${updatedAppt.id}`,
+                        text: `${updatedAppt.serviceTypeName} - ${updatedAppt.userName}`,
+                        showConfirmButton: false,
+                        timer: 5000
+                    });
+                    return [updatedAppt, ...prevList];
+                }
+            });
+        }
+    }, [lastMessage]);
 
     // 1. Fetch Data
     const fetchAppointments = async () => {

@@ -1,39 +1,54 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axiosConfig from '../../../util/axiosConfig';
-import toast from 'react-hot-toast';
 import BANK_INFO from '../../../util/bankConfig';
 import AuthContext from '../../../context/AuthContext';
+import SocketContext from '../../../context/SocketContext';
+import Swal from 'sweetalert2';
 
-// Trang này dùng cho cả USER và ADMIN để xem chi tiết đơn hàng
 const OrderDetailPage = () => {
-    const { orderId } = useParams(); // Lấy ID từ URL
+    const { orderId } = useParams();
     const { user } = useContext(AuthContext);
     const navigate = useNavigate();
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
+    const { lastMessage } = useContext(SocketContext);
 
+    // Helper: Map trạng thái sang màu sắc và text tiếng Việt
+    const getStatusBadge = (status) => {
+        switch (status) {
+            case 'PENDING':
+                return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">Chờ xác nhận</span>;
+            case 'PREPARING':
+                return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">Đang chuẩn bị</span>;
+            case 'SHIPPING':
+                return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800">Đang giao hàng</span>;
+            case 'COMPLETED':
+                return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">Hoàn thành</span>;
+            case 'CANCELLED':
+                return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">Đã hủy</span>;
+            default:
+                return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">{status}</span>;
+        }
+    };
+
+    // ============================================================
+    // FETCH đơn hàng khi mount hoặc khi orderId đổi
+    // ============================================================
     useEffect(() => {
         const fetchOrderDetail = async () => {
             try {
-                // --- LOGIC QUAN TRỌNG Ở ĐÂY ---
-                let apiUrl = `/order/${orderId}`; // Mặc định là API của User
-                
-                // Nếu user là ADMIN
-                // Thì đổi sang gọi API của Admin
+                let apiUrl = `/order/${orderId}`;
                 if (user?.authorities?.some(auth => auth.authority === 'ADMIN') || user?.role === 'ADMIN') {
-                     apiUrl = `/admin/order/${orderId}`;
+                    apiUrl = `/admin/order/${orderId}`;
                 }
-
                 const res = await axiosConfig.get(apiUrl);
                 setOrder(res.data);
             } catch (error) {
                 console.error("Lỗi tải đơn hàng:", error);
                 alert("Không tìm thấy đơn hàng hoặc bạn không có quyền xem!");
-                
-                // Điều hướng về đúng trang danh sách tùy theo role
                 if (user?.role === 'ADMIN') {
-                    navigate('/orderAdmin'); // (Nếu bạn chưa có route này thì để /admin/orders)
+                    navigate('/orderAdmin');
                 } else {
                     navigate('/my-orders');
                 }
@@ -42,39 +57,88 @@ const OrderDetailPage = () => {
             }
         };
 
-        // Chỉ gọi khi có user (đã load xong AuthContext)
         if (user) {
             fetchOrderDetail();
         }
     }, [orderId, navigate, user]);
 
+    // ============================================================
+    // ✅ FIX: Lắng nghe WebSocket update — đây là phần quan trọng nhất
+    // ============================================================
+    useEffect(() => {
+        // Guard: nếu chưa có lastMessage thì bỏ qua
+        if (!lastMessage) {
+            console.log("OrderDetailPage: lastMessage là null, bỏ qua.");
+            return;
+        }
+
+        // Guard: chỉ xử lý type ORDER
+        if (lastMessage.type !== 'ORDER') {
+            console.log("OrderDetailPage: lastMessage.type =", lastMessage.type, "— không phải ORDER, bỏ qua.");
+            return;
+        }
+
+        const updatedOrder = lastMessage.data;
+
+        // ✅ DEBUG: Log để thấy mình đang so sánh gì với gì
+        console.log("OrderDetailPage: Đang so sánh ID");
+        console.log("  → updatedOrder.id =", updatedOrder.id, "| typeof:", typeof updatedOrder.id);
+        console.log("  → orderId (URL param) =", orderId, "| typeof:", typeof orderId);
+        console.log("  → Number(updatedOrder.id) =", Number(updatedOrder.id));
+        console.log("  → Number(orderId) =", Number(orderId));
+        console.log("  → Kết quả so sánh:", Number(updatedOrder.id) === Number(orderId));
+
+        // ✅ So sánh — convert cả hai sang Number để tránh "1" !== 1
+        if (Number(updatedOrder.id) === Number(orderId)) {
+            console.log("✅ ID khớp! Cập nhật order state với status mới:", updatedOrder.status);
+
+            // ✅ Spread để tạo object mới → React chắc chắn detect state change
+            setOrder(prev => ({ ...prev, ...updatedOrder }));
+
+            // Hiện toast Swal
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: `Trạng thái đã đổi: ${updatedOrder.status}`,
+                timer: 3000,
+                showConfirmButton: false
+            });
+        } else {
+            console.log("❌ ID không khớp — không cập nhật.");
+        }
+
+        // dependency: lastMessage thay đổi → effect chạy lại
+        // orderId cũng cần ở đây vì nó dùng trong so sánh
+    }, [lastMessage, orderId]);
+
+    // ============================================================
+    // RENDER
+    // ============================================================
     if (loading) return <div className="text-center py-20">Đang tải chi tiết đơn hàng...</div>;
     if (!order) return null;
 
-    // --- LOGIC TẠO MÃ QR ---
-    // Chỉ tạo khi: Phương thức là BANKING và (Trạng thái thanh toán là UNPAID hoặc chưa có trường này)
-    // Lưu ý: Backend của bạn cần trả về field paymentStatus, nếu chưa có thì tạm thời check status đơn hàng
-    const showQR = order.paymentMethod === 'BANKING' && 
-                   (order.paymentStatus === 'UNPAID' || !order.paymentStatus) && 
+    const showQR = order.paymentMethod === 'BANKING' &&
+                   (order.paymentStatus === 'UNPAID' || !order.paymentStatus) &&
                    order.status === 'PENDING';
 
-    const transferContent = `DH${order.id}`; 
+    const transferContent = `DH${order.id}`;
     const qrUrl = `https://img.vietqr.io/image/${BANK_INFO.BANK_ID}-${BANK_INFO.ACCOUNT_NO}-${BANK_INFO.TEMPLATE}.png?amount=${order.totalAmount}&addInfo=${transferContent}&accountName=${encodeURIComponent(BANK_INFO.ACCOUNT_NAME)}`;
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-5xl">
-            <button 
+            <button
                 onClick={() => {
                     if (user?.role === "ADMIN") {
                         navigate('/orderAdmin');
-                    }else{
+                    } else {
                         navigate('/my-orders');
                     }
-                }} 
+                }}
                 className="text-gray-500 hover:text-cyan-600 mb-4 flex items-center gap-1"
             >
                 <span className="material-symbols-outlined text-sm">arrow_back</span>
-                {user?.role==='ADMIN' ? 'Quay lại trang quản lý' : 'Quay lại danh sách'}
+                {user?.role === 'ADMIN' ? 'Quay lại trang quản lý' : 'Quay lại danh sách'}
             </button>
 
             <h1 className="text-2xl font-bold mb-6 text-gray-800">Chi tiết đơn hàng #{order.id}</h1>
@@ -104,11 +168,10 @@ const OrderDetailPage = () => {
                                 <span>{order.totalAmount?.toLocaleString()}đ</span>
                             </div>
 
-                            {/* Nếu có giảm giá thì hiện dòng này */}
                             {order.discountAmount > 0 && (
                                 <div className="flex justify-between items-center text-sm text-green-600 font-medium">
                                     <span className="flex items-center gap-1">
-                                        <span className="material-symbols-outlined text-sm">local_offer</span> 
+                                        <span className="material-symbols-outlined text-sm">local_offer</span>
                                         Voucher ({order.voucherCode}):
                                     </span>
                                     <span>-{order.discountAmount?.toLocaleString()}đ</span>
@@ -131,12 +194,12 @@ const OrderDetailPage = () => {
                             <p><span className="font-medium text-gray-500">Số điện thoại:</span> {order.phoneNumber}</p>
                             <p><span className="font-medium text-gray-500">Địa chỉ:</span> {order.shippingAddress}</p>
                             <p><span className="font-medium text-gray-500">Phương thức thanh toán:</span> {order.paymentMethod === 'BANKING' ? 'Chuyển khoản (QR)' : 'Tiền mặt (COD)'}</p>
-                            <p><span className="font-medium text-gray-500">Trạng thái đơn:</span> {order.status}</p>
+                            <p><span className="font-medium text-gray-500">Trạng thái đơn:</span> {getStatusBadge(order.status)}</p>
                         </div>
                     </div>
                 </div>
 
-                {/* --- CỘT PHẢI: QR CODE (Nếu cần thanh toán) --- */}
+                {/* --- CỘT PHẢI: QR CODE --- */}
                 <div className="md:col-span-1">
                     {showQR ? (
                         <div className="bg-white p-6 rounded-xl border-2 border-cyan-100 shadow-lg sticky top-24">
@@ -144,9 +207,7 @@ const OrderDetailPage = () => {
                                 <h3 className="text-lg font-bold text-cyan-700">THANH TOÁN ĐƠN HÀNG</h3>
                                 <p className="text-xs text-orange-500 font-medium mt-1">Đơn hàng chưa được thanh toán</p>
                             </div>
-                            
                             <img src={qrUrl} alt="QR Code" className="w-full h-auto rounded-lg border mb-4" />
-                            
                             <div className="text-sm bg-gray-50 p-3 rounded space-y-2">
                                 <p className="flex justify-between"><span>Ngân hàng:</span> <strong>{BANK_INFO.BANK_ID}</strong></p>
                                 <p className="flex justify-between"><span>Số TK:</span> <strong>{BANK_INFO.ACCOUNT_NO}</strong></p>
@@ -158,13 +219,12 @@ const OrderDetailPage = () => {
                             </div>
                         </div>
                     ) : (
-                        // Nếu đã thanh toán hoặc là COD
                         <div className="bg-green-50 p-6 rounded-lg border border-green-200 text-center">
                             <span className="material-symbols-outlined text-4xl text-green-500 mb-2">check_circle</span>
                             <h3 className="font-bold text-green-800">Đơn hàng hợp lệ</h3>
                             <p className="text-sm text-green-700 mt-2">
-                                {order.paymentMethod === 'COD' 
-                                    ? 'Vui lòng chuẩn bị tiền mặt khi nhận hàng.' 
+                                {order.paymentMethod === 'COD'
+                                    ? 'Vui lòng chuẩn bị tiền mặt khi nhận hàng.'
                                     : 'Đơn hàng đã được thanh toán hoặc đang chờ xử lý.'}
                             </p>
                         </div>

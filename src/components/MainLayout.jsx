@@ -3,6 +3,7 @@ import AuthContext from "../context/AuthContext";
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import MenuBar from "./Header/MenuBar";
+import Footer from "./footer/Footer";
 
 const MainLayout = () => {
     const { user } = useContext(AuthContext);
@@ -42,7 +43,7 @@ const MainLayout = () => {
                     </div>
 
                     {/* Footer luôn hiện */}
-                    {/* <Footer/> */}
+                    <Footer/>
                 </div>
 
             )}

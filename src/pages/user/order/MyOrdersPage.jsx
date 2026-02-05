@@ -2,18 +2,30 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import axiosConfig from '../../../util/axiosConfig';
+import SocketContext from '../../../context/SocketContext';
+import { useContext } from 'react';
+import Pagination from '../../../components/common/Pagination';
 
 const MyOrdersPage = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const { lastMessage } = useContext(SocketContext);
 
     // Hàm gọi API lấy danh sách đơn hàng của user
     const fetchOrders = async () => {
         try {
-            const response = await axiosConfig.get('/order');
-            const sortedOrders = [...response.data].sort((a, b) => b.id - a.id);
-            setOrders(sortedOrders);
+            const response = await axiosConfig.get('/order', {
+                params: {
+                    page: page,
+                    size: 1
+                }
+            });
+            const resData = response.data;
+            setOrders(resData.content || []);
+            setTotalPages(resData?.page?.totalPages || 0);
         } catch (error) {
             console.error("Lỗi tải đơn hàng:", error);
         } finally {
@@ -23,7 +35,35 @@ const MyOrdersPage = () => {
 
     useEffect(() => {
         fetchOrders();
-    }, []);
+    }, [page]); //Thêm dependency [page] để khi bấm chuyển trang thì gọi lại API
+
+    useEffect(() => {
+        if (lastMessage?.type === 'ORDER') {
+            const updatedOrder = lastMessage.data;
+            console.log("Socket nhận tin nhắn cho danh sách đơn hàng:", updatedOrder);
+
+            // Kiểm tra xem đơn hàng này có nằm trong danh sách đang hiển thị không
+            setOrders(prevOrders => {
+                const isExist = prevOrders.find(o => o.id === updatedOrder.id);
+                if (!isExist) return prevOrders; // Nếu không có trong danh sách thì thôi
+
+                // Nếu có, tiến hành cập nhật "nóng" vào mảng
+                return prevOrders.map(order => 
+                    order.id === updatedOrder.id ? updatedOrder : order
+                );
+            });
+
+            // Hiển thị thông báo nhỏ
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: `Đơn hàng #${updatedOrder.id}: ${updatedOrder.status}`,
+                timer: 4000,
+                showConfirmButton: false
+            });
+        }
+    }, [lastMessage]);
 
     // Hàm xử lý huỷ đơn
     const handleCancelOrder = async (orderId) => {
@@ -194,6 +234,12 @@ const MyOrdersPage = () => {
                     ))}
                 </div>
             )}
+            {/* Pagination */}
+            <Pagination 
+                currentPage={page}
+                totalPages={totalPages} 
+                onPageChange={setPage} 
+            />
         </div>
     );
 };

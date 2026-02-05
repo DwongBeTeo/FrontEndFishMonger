@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axiosConfig from '../../util/axiosConfig';
 import Swal from 'sweetalert2';
+import SocketContext from '../../context/SocketContext';
 
 const Toast = Swal.mixin({
     toast: true,
@@ -20,6 +21,7 @@ const OrderAdmin = () => {
     const [loading, setLoading] = useState(true);
     const [keyword, setKeyword] = useState('');
     const navigate = useNavigate();
+    const {lastMessage} = useContext(SocketContext);
 
 
     // Hàm gọi API lấy danh sách
@@ -43,6 +45,38 @@ const OrderAdmin = () => {
     useEffect(() => {
         fetchOrders();
     }, []);
+
+    // 🔥 LOGIC REAL-TIME: Lắng nghe sự thay đổi từ Socket
+    // =========================================================================
+    useEffect(() => {
+        // Chỉ xử lý khi có tin nhắn loại ADMIN_ORDER_UPDATE
+        if (lastMessage && lastMessage.type === 'ADMIN_ORDER_UPDATE') {
+            const updatedOrder = lastMessage.data;
+            console.log("⚡ Admin nhận update realtime:", updatedOrder);
+
+            setOrders(prevOrders => {
+                // Kiểm tra xem đơn hàng này đã có trong danh sách chưa
+                const isExist = prevOrders.find(o => o.id === updatedOrder.id);
+
+                if (isExist) {
+                    // Case A: Đơn hàng đã tồn tại (Ví dụ: Khách yêu cầu hủy) -> Cập nhật lại nó
+                    return prevOrders.map(o => o.id === updatedOrder.id ? updatedOrder : o);
+                } else {
+                    // Case B: Đơn hàng mới tinh (Khách vừa đặt) -> Thêm vào đầu danh sách
+                    // Hiển thị thông báo nhỏ góc màn hình
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'info',
+                        title: `🔔 Có đơn hàng mới #${updatedOrder.id}`,
+                        showConfirmButton: false,
+                        timer: 4000
+                    });
+                    return [updatedOrder, ...prevOrders];
+                }
+            });
+        }
+    }, [lastMessage]); // Chạy mỗi khi lastMessage thay đổi
 
     // Xử lý tìm kiếm (Debounce hoặc bấm nút)
     const handleSearch = (e) => {

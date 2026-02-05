@@ -30,15 +30,6 @@ const Home = () => {
         
         {/* 1. Banner Slider */}
         <SlideShow /> 
-        {/* <p className="text-sm text-slate-800 text-center mt-6">
-            Phát triển bởi Trần Đăng Dương-K22CNT2 Khoa Công nghệ Thông tin Đại học Nguyễn trãi(link page cuar ban than)
-        </p>
-        <p className="text-sm text-slate-800 text-center mt-6">
-            Link page cuar truong
-        </p>
-        <p className="text-sm text-slate-800 text-center mt-6">
-            Link page cua khoa
-        </p> */}
 
         {/* --- 2. VOUCHER BANNER (MỚI) --- */}
         <div className="mt-[-20px] relative z-10"> {/* Kỹ thuật overlap nhẹ lên slider nếu muốn đẹp */}

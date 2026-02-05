@@ -1,14 +1,64 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import axiosConfig from '../../../util/axiosConfig';
 import { Calendar, MapPin, Clock, User, Phone, CheckCircle, XCircle, AlertCircle, Tag } from 'lucide-react';
 import Pagination from '../../../components/common/Pagination';
 import Swal from 'sweetalert2';
+import SocketContext from '../../../context/SocketContext';
 
 const MyAppointmentsPage = () => {
     const [appointments, setAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
+    const { lastMessage } = useContext(SocketContext);
+
+    // 🔥 LOGIC REAL-TIME
+    useEffect(() => {
+        if (lastMessage && lastMessage.type === 'APPOINTMENT') {
+            const updatedAppt = lastMessage.data;
+            
+            setAppointments(prevList => {
+                // Kiểm tra xem item có trong list không (So sánh lỏng lẻo == để bỏ qua khác biệt string/number)
+                const exists = prevList.find(a => a.id == updatedAppt.id);
+                if (!exists) return prevList;
+
+                return prevList.map(a => 
+                    // Dùng a.id == updatedAppt.id thay vì === để an toàn hơn
+                    a.id == updatedAppt.id ? updatedAppt : a
+                );
+            });
+
+            // Hiển thị thông báo toast
+            let title = `Lịch hẹn #${updatedAppt.id} cập nhật`;
+            let icon = 'info';
+
+            if (updatedAppt.status === 'CONFIRMED') {
+                title = 'Đã được phân công nhân viên!';
+                icon = 'success';
+            } else if (updatedAppt.status === 'CANCELLED') {
+                title = 'Yêu cầu hủy đã được duyệt';
+                icon = 'success';
+            } else if (updatedAppt.status === 'CANCEL_REQUESTED') {
+                title = 'Yêu cầu hủy đã được gửi đi';
+                icon = 'warning';
+            } else if (updatedAppt.status === 'COMPLETED') {
+                title = 'Lịch hẹn đã hoàn thành';
+                icon = 'success';
+            } else if (updatedAppt.status === 'IN_PROCESS') {
+                title = 'Lịch hẹn đang được thực hiện';
+                icon = 'info';
+            }
+
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: icon,
+                title: title,
+                showConfirmButton: false,
+                timer: 3000
+            });
+        }
+    }, [lastMessage]);
 
     const fetchHistory = async () => {
         setLoading(true);
@@ -18,7 +68,7 @@ const MyAppointmentsPage = () => {
             });
             const responseData = res.data;
             setAppointments(responseData.content || []);
-            setTotalPages(responseData.page?.totalPages || responseData.totalPages || 0);
+            setTotalPages(responseData.totalPages || responseData.totalPages || 0);
         } catch (error) {
             console.error("Lỗi tải lịch sử:", error);
         } finally {
